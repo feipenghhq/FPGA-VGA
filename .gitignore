@@ -1,0 +1,35 @@
+# cocotb
+sim_build
+results.xml
+__pycache__
+*.vcd
+
+# emacs
+*#
+*~
+
+# quartus
+*.qsys_edit
+*.bak
+*.qws
+*.qpf
+*.sopcinfo
+*.qsf
+*db
+*tmp
+quartus
+
+
+# qsys
+*.bsf
+*.cmp
+*.html
+*.sopcinfo
+*.rpt
+*.lck
+.qsys_edit
+*.stp
+
+# software
+app
+bsp
