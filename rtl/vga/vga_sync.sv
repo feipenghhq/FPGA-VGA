@@ -13,7 +13,7 @@
 
 module vga_sync (
     input                   pixel_clk,
-    input                   reset,
+    input                   pixel_rst,
     output                  vga_hsync,
     output                  vga_vsync,
     output [`H_SIZE-1:0]    vga_hc,      // horizontal count
@@ -43,7 +43,7 @@ module vga_sync (
     assign v_counter_fire = v_counter == `V_COUNT-1;
 
     always @(posedge pixel_clk) begin
-        if (reset) begin
+        if (pixel_rst) begin
             h_counter <= '0;
             v_counter <= '0;
         end
