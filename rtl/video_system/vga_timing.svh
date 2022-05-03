@@ -1,0 +1,1 @@
+../vga_core/vga_timing.svh

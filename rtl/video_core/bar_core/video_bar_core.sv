@@ -115,8 +115,8 @@
      // Outputs
      .bar_rgb                           (bar_rgb[11:0]),
      // Inputs
-     .clk                         (clk),
-     .rst                         (rst),
+     .clk                               (clk),
+     .rst                               (rst),
      .hc                                (hc[HSIZE-1:0]),
      .vc                                (vc[VSIZE-1:0]));
 

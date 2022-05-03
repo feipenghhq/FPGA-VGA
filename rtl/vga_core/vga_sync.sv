@@ -100,7 +100,7 @@ module vga_sync #(
     assign v_video_on = v_counter <= `V_DISPLAY - 1;
     assign video_on   = h_video_on & v_video_on;
 
-    assign vga_stream_start = vga_src_rgb[RGB_SIZE]
+    assign vga_stream_start = vga_src_rgb[RGB_SIZE];
 
     always @(posedge pixel_clk) begin
         if (pixel_rst) begin

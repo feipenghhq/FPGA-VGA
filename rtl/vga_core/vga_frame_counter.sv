@@ -10,7 +10,7 @@
 
 `include "vga_timing.svh"
 
-module vga_sync #(
+module vga_frame_counter #(
     parameter RSIZE     = 4,
     parameter GSIZE     = 4,
     parameter BSIZE     = 4,
@@ -24,7 +24,8 @@ module vga_sync #(
     output [`V_SIZE-1:0]    vcount,
 
     output                  frame_start,
-    output                  frame_end
+    output                  frame_end,
+    output                  frame_display
 );
 
     // --------------------------------
@@ -47,11 +48,13 @@ module vga_sync #(
     assign h_counter_fire = h_counter == `H_COUNT-1;
     assign v_counter_fire = v_counter == `V_COUNT-1;
 
-    assign frame_start = h_counter == 0 & v_counter == 0;
-    assign frame_end   = h_counter_fire & v_counter_fire;
+    assign frame_start   = h_counter == 0 & v_counter == 0;
+    assign frame_end     = h_counter_fire & v_counter_fire;
+    assign frame_display = (h_counter < `H_DISPLAY) & (v_counter < `V_DISPLAY);
 
     assign hcount = h_counter;
     assign vcount = v_counter;
+
 
     always @(posedge clk) begin
         if (rst | clear) begin
