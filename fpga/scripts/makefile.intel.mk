@@ -15,6 +15,7 @@ FAMILY  	?= Cyclone II
 PROJECT	 	?=
 TOP			?=
 VERILOG 	?=
+SEARCH		?=
 SDC 		?=
 PIN			?=
 
@@ -29,6 +30,7 @@ export QUARTUS_FAMILY 	= $(FAMILY)
 export QUARTUS_PRJ 		= $(PROJECT)
 export QUARTUS_TOP    	= $(TOP)
 export QUARTUS_VERILOG  = $(VERILOG)
+export QUARTUS_SEARCH   = $(SEARCH)
 export QUARTUS_SDC		= $(SDC)
 export QUARTUS_QIP		= $(QIP)
 export QUARTUS_PIN		= $(PIN)
@@ -56,6 +58,8 @@ $(SOF): $(QIP)
 
 pgm: $(SOF)
 	quartus_pgm --mode JTAG -o "p;$(SOF)"
+
+qsys: $(QIP)
 
 qsys-edit:
 	qsys-edit $(QSYS_DIR)/$(QSYS).qsys

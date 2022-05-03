@@ -156,18 +156,18 @@ module de2_top (
    assign AUD_XCK    = 1'b0;
 
    //Disable DRAM.
-   assign DRAM_ADDR  = 12'h0;
-   assign DRAM_BA_0  = 1'b0;
-   assign DRAM_BA_1  = 1'b0;
-   assign DRAM_CAS_N = 1'b1;
-   assign DRAM_CKE   = 1'b0;
-   assign DRAM_CLK   = 1'b0;
-   assign DRAM_CS_N  = 1'b1;
-   assign DRAM_DQ    = 16'hzzzz;
-   assign DRAM_LDQM  = 1'b0;
-   assign DRAM_RAS_N = 1'b1;
-   assign DRAM_UDQM  = 1'b0;
-   assign DRAM_WE_N  = 1'b1;
+   // assign DRAM_ADDR  = 12'h0;
+   // assign DRAM_BA_0  = 1'b0;
+   // assign DRAM_BA_1  = 1'b0;
+   // assign DRAM_CAS_N = 1'b1;
+   // assign DRAM_CKE   = 1'b0;
+   // assign DRAM_CLK   = 1'b0;
+   // assign DRAM_CS_N  = 1'b1;
+   // assign DRAM_DQ    = 16'hzzzz;
+   // assign DRAM_LDQM  = 1'b0;
+   // assign DRAM_RAS_N = 1'b1;
+   // assign DRAM_UDQM  = 1'b0;
+   // assign DRAM_WE_N  = 1'b1;
 
    //Disable Ethernet.
    assign ENET_CLK   = 1'b0;
@@ -236,25 +236,31 @@ module de2_top (
    assign TDO = 1'b0;
    assign UART_TXD = 1'b0;
 
-    logic pixel_clk;
 
-    altpll25mhz u_altpll25mhz
-    (
-        .inclk0     (CLOCK_50),
-        .c0         (VGA_CLK));
+    logic [3:0] vga_r;
+    logic [3:0] vga_g;
+    logic [3:0] vga_b;
 
-    bar_test_demo u_bar_test_demo
-    (
-        .pixel_clk  (VGA_CLK),
-        .reset      (1'b0),
-        .vga_hsync  (VGA_HS),
-        .vga_vsync  (VGA_VS),
-        .vga_r      (VGA_R),
-        .vga_g      (VGA_G),
-        .vga_b      (VGA_B),
-        .vga_on     (VGA_BLANK)
+    video_daisy_system_top sopc (
+        .clk_clk       (CLOCK_50),
+        .sdram_clk_clk (DRAM_CLK),
+        .sdram_addr    (DRAM_ADDR),
+        .sdram_ba      ({DRAM_BA_1, DRAM_BA_0}),
+        .sdram_cas_n   (DRAM_CAS_N),
+        .sdram_cke     (DRAM_CKE),
+        .sdram_cs_n    (DRAM_CS_N),
+        .sdram_dq      (DRAM_DQ),
+        .sdram_dqm     ({DRAM_UDQM, DRAM_LDQM}),
+        .sdram_ras_n   (DRAM_RAS_N),
+        .sdram_we_n    (DRAM_WE_N),
+        .vga_r         (vga_r),
+        .vga_g         (vga_g),
+        .vga_b         (vga_b),
+        .vga_hsync     (VGA_HS),
+        .vga_vsync     (VGA_VS)
     );
 
-    assign VGA_SYNC = 1'b0;
+    assign VGA_BLANK = 1'b1;
+    assign VGA_SYNC  = 1'b0;
 
 endmodule
