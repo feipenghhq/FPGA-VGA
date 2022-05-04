@@ -17,15 +17,13 @@
  */
 
 
-module video_bar_gen #(
-    parameter HSIZE     = 11,
-    parameter VSIZE     = 11,
-    parameter VDISPLAY  = 480
-) (
+`include "vga.svh"
+
+module video_bar_gen (
     input                   clk,
     input                   rst,
-    input  [HSIZE-1:0]      hc,
-    input  [VSIZE-1:0]      vc,
+    input  [`H_SIZE-1:0]    hc,
+    input  [`V_SIZE-1:0]    vc,
     output [11:0]           bar_rgb
 );
 
@@ -49,13 +47,13 @@ module video_bar_gen #(
 
     always @* begin
         // 16 shade of gray (for 640x480)
-        if (vc < VDISPLAY / 3) begin
+        if (vc < `V_DISPLAY / 3) begin
             bar_r = {hc[8:5]};
             bar_g = {hc[8:5]};
             bar_b = {hc[8:5]};
         end
         // 8 primary color
-        else if (vc < (VDISPLAY / 3) * 2) begin
+        else if (vc < (`V_DISPLAY / 3) * 2) begin
             bar_r = {4{hc[8]}};
             bar_g = {4{hc[7]}};
             bar_b = {4{hc[6]}};

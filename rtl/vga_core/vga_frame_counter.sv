@@ -8,7 +8,7 @@
  * ---------------------------------------------------------------
  */
 
-`include "vga_timing.svh"
+`include "vga.svh"
 
 module vga_frame_counter #(
     parameter RSIZE     = 4,
@@ -19,9 +19,10 @@ module vga_frame_counter #(
     input                   clk,
     input                   rst,
 
-    input                   clear,
-    output [`H_SIZE-1:0]    hcount,
-    output [`V_SIZE-1:0]    vcount,
+    input                   fc_clear,
+    input                   fc_enable,
+    output [`H_SIZE-1:0]    fc_hcount,
+    output [`V_SIZE-1:0]    fc_vcount,
 
     output                  frame_start,
     output                  frame_end,
@@ -52,16 +53,16 @@ module vga_frame_counter #(
     assign frame_end     = h_counter_fire & v_counter_fire;
     assign frame_display = (h_counter < `H_DISPLAY) & (v_counter < `V_DISPLAY);
 
-    assign hcount = h_counter;
-    assign vcount = v_counter;
+    assign fc_hcount = h_counter;
+    assign fc_vcount = v_counter;
 
 
     always @(posedge clk) begin
-        if (rst | clear) begin
+        if (rst | fc_clear) begin
             h_counter <= '0;
             v_counter <= '0;
         end
-        else begin
+        else if (fc_enable) begin
             if (h_counter_fire) h_counter <= 'b0;
             else h_counter <= h_counter + 1'b1;
 

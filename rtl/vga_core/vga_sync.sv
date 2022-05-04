@@ -9,7 +9,7 @@
  * ---------------------------------------------------------------
  */
 
-`include "vga_timing.svh"
+`include "vga.svh"
 
 module vga_sync #(
     parameter RSIZE     = 4,

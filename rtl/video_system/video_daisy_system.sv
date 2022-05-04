@@ -8,7 +8,7 @@
  * ---------------------------------------------------------------
  */
 
-`include "vga_timing.svh"
+`include "vga.svh"
 
 module video_daisy_system #(
     parameter RSIZE     = 4,
@@ -37,10 +37,6 @@ module video_daisy_system #(
     input  [31:0]           avs_video_bar_core_writedata
 );
 
-    localparam HSIZE     = 10;
-    localparam VSIZE     = 10;
-    localparam VDISPLAY  = 480;
-
     // --------------------------------
     // Signal declarations
     // --------------------------------
@@ -51,9 +47,11 @@ module video_daisy_system #(
 
     /*AUTOWIRE*/
 
+    localparam PIPELINE = 1;
 
-    logic [`H_SIZE-1:0]     hcount;
-    logic [`V_SIZE-1:0]     vcount;
+    logic [`H_SIZE-1:0]     fc_hcount;
+    logic [`V_SIZE-1:0]     fc_vcount;
+    logic                   fc_enable;
     logic                   frame_start;
     logic                   frame_display;
 
@@ -63,12 +61,20 @@ module video_daisy_system #(
 
     logic [RGB_SIZE-1:0]    video_bar_core_snk_rgb;
 
+    vga_fc_t                video_bar_core_src_fc;
+    vga_fc_t                video_bar_core_snk_fc;
+
     // --------------------------------
-    // Glue Logic
+    // Main logic
     // --------------------------------
 
-    assign line_buffer_data = {frame_start, video_bar_core_snk_rgb};
-    assign line_buffer_vld  = frame_display & line_buffer_rdy;
+    assign video_bar_core_src_fc.hc = fc_hcount;
+    assign video_bar_core_src_fc.vc = fc_vcount;
+    assign video_bar_core_src_fc.frame_start = frame_start;
+
+    assign line_buffer_data[RGB_SIZE-1:0] = video_bar_core_snk_rgb;
+    assign line_buffer_data[RGB_SIZE] = video_bar_core_snk_fc.frame_start;
+
 
     // --------------------------------
     // Module Declaration
@@ -77,7 +83,7 @@ module video_daisy_system #(
     /* vga_frame_counter AUTO_TEMPLATE (
      .clk       (sys_clk),
      .rst       (sys_rst),
-     .clear     (0),
+     .fc_clear  (0),
      .frame_end (),
     );
     */
@@ -91,40 +97,51 @@ module video_daisy_system #(
     u_vga_frame_counter
     (/*AUTOINST*/
      // Outputs
-     .hcount                            (hcount[`H_SIZE-1:0]),
-     .vcount                            (vcount[`V_SIZE-1:0]),
+     .fc_hcount                         (fc_hcount[`H_SIZE-1:0]),
+     .fc_vcount                         (fc_vcount[`V_SIZE-1:0]),
      .frame_start                       (frame_start),
      .frame_end                         (),                      // Templated
      .frame_display                     (frame_display),
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
-     .clear                             (0));                     // Templated
+     .fc_clear                          (0),                     // Templated
+     .fc_enable                         (fc_enable));
 
     /* video_bar_core AUTO_TEMPLATE (
+     //
      .clk           (sys_clk),
      .rst           (sys_rst),
-     .snk_rgb       (video_bar_core_snk_rgb[]),
      .avs_\(.*\)    (avs_video_bar_core_\1[]),
-     .hc            (hcount),
-     .vc            (vcount),
+     // src
+     .src_vld       (frame_display),
+     .src_rdy       (fc_enable),
+     .src_fc        (video_bar_core_src_fc),
      .src_rgb       (0),
+     // sink
+     .snk_vld       (line_buffer_vld),
+     .snk_rdy       (line_buffer_rdy),
+     .snk_fc        (video_bar_core_snk_fc),
+     .snk_rgb       (video_bar_core_snk_rgb[]),
     );
     */
     video_bar_core
     #(
       /*AUTOINSTPARAM*/
       // Parameters
-      .HSIZE                            (HSIZE),
-      .VSIZE                            (VSIZE),
-      .VDISPLAY                         (VDISPLAY),
       .RSIZE                            (RSIZE),
       .GSIZE                            (GSIZE),
       .BSIZE                            (BSIZE),
-      .RGB_SIZE                         (RGB_SIZE))
+      .RGB_SIZE                         (RGB_SIZE),
+      .PIPELINE                         (PIPELINE))
     u_video_bar_core
     (/*AUTOINST*/
+     // Interfaces
+     .src_fc                            (video_bar_core_src_fc), // Templated
+     .snk_fc                            (video_bar_core_snk_fc), // Templated
      // Outputs
+     .src_rdy                           (fc_enable),             // Templated
+     .snk_vld                           (line_buffer_vld),       // Templated
      .snk_rgb                           (video_bar_core_snk_rgb[RGB_SIZE-1:0]), // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
@@ -132,9 +149,9 @@ module video_daisy_system #(
      .avs_write                         (avs_video_bar_core_write), // Templated
      .avs_address                       (avs_video_bar_core_address), // Templated
      .avs_writedata                     (avs_video_bar_core_writedata[31:0]), // Templated
-     .hc                                (hcount),                // Templated
-     .vc                                (vcount),                // Templated
-     .src_rgb                           (0));                     // Templated
+     .src_vld                           (frame_display),         // Templated
+     .src_rgb                           (0),                     // Templated
+     .snk_rdy                           (line_buffer_rdy));       // Templated
 
     vga_sync_core
     #(/*AUTOINSTPARAM*/
