@@ -81,4 +81,26 @@ execute_module -tool map
 execute_module -tool fit
 execute_module -tool asm
 
+# ------------------------------------------
+# Report Utilization
+# ------------------------------------------
+package require ::quartus::report
+load_report
+
+# Saving Report Data in csv Format
+# This is the name of the report panel to save as a CSV file
+set panel_name "Analysis & Synthesis||Analysis & Synthesis Resource Utilization by Entity"
+set csv_file "synthesis_resource_utilization_by_entity.csv"
+set fh [open $csv_file w]
+set num_rows [get_number_of_rows -name $panel_name]
+# Go through all the rows in the report file, including the
+# row with headings, and write out the comma-separated data
+for { set i 0 } { $i < $num_rows } { incr i } {
+	set row_data [get_report_panel_row -name $panel_name \
+		-row $i]
+	puts $fh [join $row_data ","]
+}
+close $fh
+unload_report
+
 project_close

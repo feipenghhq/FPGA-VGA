@@ -237,30 +237,43 @@ module de2_top (
    assign UART_TXD = 1'b0;
 
 
+    /////////////////////////////////////////////
+
+    logic pixel_clk;
+    logic sys_clk;
+
     logic [3:0] vga_r;
     logic [3:0] vga_g;
     logic [3:0] vga_b;
 
-    video_daisy_system_top sopc (
-        .clk_clk       (CLOCK_50),
-        .sdram_clk_clk (DRAM_CLK),
-        .sdram_addr    (DRAM_ADDR),
-        .sdram_ba      ({DRAM_BA_1, DRAM_BA_0}),
-        .sdram_cas_n   (DRAM_CAS_N),
-        .sdram_cke     (DRAM_CKE),
-        .sdram_cs_n    (DRAM_CS_N),
-        .sdram_dq      (DRAM_DQ),
-        .sdram_dqm     ({DRAM_UDQM, DRAM_LDQM}),
-        .sdram_ras_n   (DRAM_RAS_N),
-        .sdram_we_n    (DRAM_WE_N),
-        .vga_r         (vga_r),
-        .vga_g         (vga_g),
-        .vga_b         (vga_b),
-        .vga_hsync     (VGA_HS),
-        .vga_vsync     (VGA_VS)
-    );
+    assign VGA_R = {vga_r, 6'b0};
+    assign VGA_G = {vga_g, 6'b0};
+    assign VGA_B = {vga_b, 6'b0};
 
     assign VGA_BLANK = 1'b1;
     assign VGA_SYNC  = 1'b0;
+
+    altpllvga u_altpllvga
+    (
+        .inclk0 (CLOCK_50),
+        .c0     (sys_clk),
+        .c1     (VGA_CLK)
+    );
+
+    video_daisy_system
+    u_video_daisy_system (
+        .pixel_clk      (VGA_CLK),
+        .pixel_rst      (0),
+        .sys_clk        (sys_clk),
+        .sys_rst        (0),
+        .vga_r          (vga_r),
+        .vga_g          (vga_g),
+        .vga_b          (vga_b),
+        .vga_hsync      (VGA_HS),
+        .vga_vsync      (VGA_VS),
+        .avs_video_bar_core_address     (0),
+        .avs_video_bar_core_write       (0),
+        .avs_video_bar_core_writedata   (0)
+    );
 
 endmodule

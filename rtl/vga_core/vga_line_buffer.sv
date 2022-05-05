@@ -32,7 +32,8 @@ module vga_line_buffer #(
     logic [WIDTH-1:0]       dout;
     logic                   empty;
     logic                   full;
-
+    logic                   read;
+    logic                   write;
 
     /*AUTOREG*/
 
@@ -40,15 +41,15 @@ module vga_line_buffer #(
 
     assign src_rdy = ~full;
     assign snk_vld = ~empty;
+    assign write = src_vld & src_rdy;
+    assign read = snk_rdy & snk_vld;
 
     /* vga_async_fifo AUTO_TEMPLATE (
         .clk_wr     (src_clk),
         .rst_wr     (src_rst),
-        .write      (src_vld),
         .din        (src_data),
         .clk_rd     (snk_clk),
         .rst_rd     (snk_rst),
-        .read       (snk_rdy),
         .dout       (snk_data),
     );
     */
@@ -66,11 +67,11 @@ module vga_line_buffer #(
      // Inputs
      .rst_rd                            (snk_rst),               // Templated
      .clk_rd                            (snk_clk),               // Templated
-     .read                              (snk_rdy),               // Templated
+     .read                              (read),
      .rst_wr                            (src_rst),               // Templated
      .clk_wr                            (src_clk),               // Templated
      .din                               (src_data),              // Templated
-     .write                             (src_vld));               // Templated
+     .write                             (write));
 
 
 endmodule

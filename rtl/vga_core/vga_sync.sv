@@ -40,8 +40,6 @@ module vga_sync #(
                         S_DISP = 1;
     reg                 state;
 
-    reg [RGB_SIZE:0]    buffer;
-    reg                 buffer_vld;
     reg [`H_SIZE-1:0]   h_counter;
     reg [`V_SIZE-1:0]   v_counter;
 
@@ -96,8 +94,8 @@ module vga_sync #(
     assign h_disp_end = h_counter == `H_DISPLAY-1;
     assign v_disp_end = v_counter == `V_DISPLAY-1;
 
-    assign h_video_on = h_counter <= `H_DISPLAY - 1;
-    assign v_video_on = v_counter <= `V_DISPLAY - 1;
+    assign h_video_on = h_counter <= `H_DISPLAY-1;
+    assign v_video_on = v_counter <= `V_DISPLAY-1;
     assign video_on   = h_video_on & v_video_on;
 
     assign vga_stream_start = vga_src_rgb[RGB_SIZE];

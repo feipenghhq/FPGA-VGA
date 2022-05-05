@@ -10,12 +10,7 @@
 
 `include "vga.svh"
 
-module vga_frame_counter #(
-    parameter RSIZE     = 4,
-    parameter GSIZE     = 4,
-    parameter BSIZE     = 4,
-    parameter RGB_SIZE  = 12
-) (
+module vga_frame_counter (
     input                   clk,
     input                   rst,
 
@@ -51,7 +46,7 @@ module vga_frame_counter #(
 
     assign frame_start   = h_counter == 0 & v_counter == 0;
     assign frame_end     = h_counter_fire & v_counter_fire;
-    assign frame_display = (h_counter < `H_DISPLAY) & (v_counter < `V_DISPLAY);
+    assign frame_display = (h_counter <= `H_DISPLAY-1) & (v_counter <= `V_DISPLAY-1);
 
     assign fc_hcount = h_counter;
     assign fc_vcount = v_counter;

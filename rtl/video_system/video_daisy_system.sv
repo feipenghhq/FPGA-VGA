@@ -88,12 +88,6 @@ module video_daisy_system #(
     );
     */
     vga_frame_counter
-    #(/*AUTOINSTPARAM*/
-      // Parameters
-      .RSIZE                            (RSIZE),
-      .GSIZE                            (GSIZE),
-      .BSIZE                            (BSIZE),
-      .RGB_SIZE                         (RGB_SIZE))
     u_vga_frame_counter
     (/*AUTOINST*/
      // Outputs

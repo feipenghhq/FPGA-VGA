@@ -42,7 +42,7 @@ module video_bar_gen (
     // --------------------------------
 
     assign up = hc[6:3];
-    assign down = ~vc[6:3];
+    assign down = 4'b1111 - hc[6:3];
     assign bar_rgb = {bar_r, bar_g, bar_b};
 
     always @* begin

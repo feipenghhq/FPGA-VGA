@@ -37,7 +37,6 @@
         if (PIPELINE == 1) begin:pipeline
 
             reg pipe_vld;
-            reg pipe_rdy;
 
             logic pipe_in_fire;
             logic pipe_out_fire;
@@ -55,22 +54,27 @@
             always @(posedge clk) begin
                 if (rst) begin
                     pipe_vld <= 1'b0;
-                    pipe_rdy <= 1'b1;
                 end
                 else begin
-                    pipe_vld <= pipe_in_fire;
-                    pipe_rdy <= ~pipe_out_vld | pipe_out_fire;
+                    case({pipe_in_fire, pipe_out_fire})
+                        2'b00: pipe_vld <= pipe_vld;
+                        2'b01: pipe_vld <= 0;
+                        2'b10: pipe_vld <= 1;
+                        2'b11: pipe_vld <= 1;
+                    endcase
                 end
             end
 
             assign pipe_out_vld = pipe_vld;
-            assign pipe_in_rdy = pipe_rdy;
+            assign pipe_in_rdy = pipe_out_rdy;
         end
         else begin: non_pipeline
+
             assign pipe_out_fc  = pipe_in_fc;
             assign pipe_out_rgb = pipe_in_rgb;
             assign pipe_out_vld = pipe_in_vld;
             assign pipe_in_rdy  = pipe_out_rdy;
+
         end
     endgenerate
 
