@@ -22,8 +22,11 @@ VERILOG 	+= $(VGA_CORE)/vga_line_buffer.sv
 VERILOG 	+= $(VGA_CORE)/vga_sync_core.sv
 VERILOG 	+= $(VGA_CORE)/vga_sync.sv
 VERILOG 	+= $(COMMON)/video_core_pipeline.sv
+VERILOG 	+= $(COMMON)/video_core_stages.sv
 VERILOG 	+= $(VIDEO_CORE)/bar_core/video_bar_core.sv
 VERILOG 	+= $(VIDEO_CORE)/bar_core/video_bar_gen.sv
+VERILOG 	+= $(VIDEO_CORE)/rgb2gray_core/video_rgb2gray_core.sv
+VERILOG 	+= $(VIDEO_CORE)/rgb2gray_core/video_rgb2gray_gen.sv
 VERILOG 	+= $(VIDEO_SYSTEM)/video_daisy_system.sv
 
 VERILOG  	+= $(GIT_ROOT)/fpga/common/rtl/altpllvga.v

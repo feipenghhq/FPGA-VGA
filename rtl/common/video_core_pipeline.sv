@@ -10,7 +10,7 @@
 
 `include "vga.svh"
 
- module video_core_pipeline #(
+module video_core_pipeline #(
     parameter RGB_SIZE  = 12,
     parameter PIPELINE  = 1
 ) (

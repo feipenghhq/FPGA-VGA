@@ -14,7 +14,9 @@
  * ---------------------------------------------------------------
  */
 
- module rgb2gray_core #(
+`include "vga.svh"
+
+module video_rgb2gray_core #(
     parameter RSIZE     = 4,
     parameter GSIZE     = 4,
     parameter BSIZE     = 4,
@@ -29,8 +31,15 @@
     input [31:0]                avs_writedata,
 
     // vga interface
+    input                       src_vld,
+    output                      src_rdy,
+    input  vga_fc_t             src_fc,
     input  [RGB_SIZE-1:0]       src_rgb,
-    output logic [RGB_SIZE-1:0] snk_rgb
+
+    input                       snk_rdy,
+    output                      snk_vld,
+    output vga_fc_t             snk_fc,
+    output [RGB_SIZE-1:0]       snk_rgb
 );
 
     // --------------------------------
@@ -72,20 +81,54 @@
     // Module Declaration
     // --------------------------------
 
-    rgb2gray_gen
+    /* video_core_stages AUTO_TEMPLATE (
+        .STAGE              (2),
+        .stage_in_rgb       (0),
+        .stage_out_rgb      (),
+        .stage_in_\(.*\)    (src_\1),
+        .stage_out_\(.*\)   (snk_\1),
+    );
+    */
+    video_core_stages
+    #(/*AUTOINSTPARAM*/
+      // Parameters
+      .RGB_SIZE                         (RGB_SIZE),
+      .STAGE                            (2))                     // Templated
+    u_video_core_stages
+    (/*AUTOINST*/
+     // Interfaces
+     .stage_in_fc                       (src_fc),                // Templated
+     .stage_out_fc                      (snk_fc),                // Templated
+     // Outputs
+     .stage_in_rdy                      (src_rdy),               // Templated
+     .stage_out_vld                     (snk_vld),               // Templated
+     .stage_out_rgb                     (),                      // Templated
+     // Inputs
+     .clk                               (clk),
+     .rst                               (rst),
+     .stage_in_vld                      (src_vld),               // Templated
+     .stage_in_rgb                      (0),                     // Templated
+     .stage_out_rdy                     (snk_rdy));               // Templated
+
+
+    video_rgb2gray_gen
     #(/*AUTOINSTPARAM*/
       // Parameters
       .RSIZE                            (RSIZE),
       .GSIZE                            (GSIZE),
       .BSIZE                            (BSIZE),
       .RGB_SIZE                         (RGB_SIZE))
-    u_rgb2gray_gen
+    u_video_rgb2gray_gen
     (/*AUTOINST*/
      // Outputs
      .snk_rgb                           (snk_rgb[RGB_SIZE-1:0]),
      // Inputs
-     .clk                         (clk),
-     .rst                         (rst),
+     .clk                               (clk),
+     .rst                               (rst),
      .src_rgb                           (src_rgb[RGB_SIZE-1:0]));
 
 endmodule
+
+// Local Variables:
+// verilog-library-flags:("-y ../../common/")
+// End:
