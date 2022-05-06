@@ -51,6 +51,9 @@ module video_rgb2gray_core #(
     reg                 ctrl_bypass;
     logic               ctrl_wen;
 
+    logic [RGB_SIZE-1:0]    stage_out_rgb;
+    logic [RGB_SIZE-1:0]    rgb2gray_rgb;
+
     /*AUTOREG*/
 
     /*AUTOWIRE*/
@@ -76,6 +79,7 @@ module video_rgb2gray_core #(
     // Main logic
     // --------------------------------
 
+    assign snk_rgb = ctrl_bypass ? stage_out_rgb : rgb2gray_rgb;
 
     // --------------------------------
     // Module Declaration
@@ -83,8 +87,8 @@ module video_rgb2gray_core #(
 
     /* video_core_stages AUTO_TEMPLATE (
         .STAGE              (2),
-        .stage_in_rgb       (0),
-        .stage_out_rgb      (),
+        .stage_in_rgb       (src_rgb),
+        .stage_out_rgb      (stage_out_rgb),
         .stage_in_\(.*\)    (src_\1),
         .stage_out_\(.*\)   (snk_\1),
     );
@@ -102,15 +106,18 @@ module video_rgb2gray_core #(
      // Outputs
      .stage_in_rdy                      (src_rdy),               // Templated
      .stage_out_vld                     (snk_vld),               // Templated
-     .stage_out_rgb                     (),                      // Templated
+     .stage_out_rgb                     (stage_out_rgb),         // Templated
      // Inputs
      .clk                               (clk),
      .rst                               (rst),
      .stage_in_vld                      (src_vld),               // Templated
-     .stage_in_rgb                      (0),                     // Templated
+     .stage_in_rgb                      (src_rgb),               // Templated
      .stage_out_rdy                     (snk_rdy));               // Templated
 
-
+    /* video_rgb2gray_gen AUTO_TEMPLATE (
+        .snk_rgb       (rgb2gray_rgb),
+    );
+    */
     video_rgb2gray_gen
     #(/*AUTOINSTPARAM*/
       // Parameters
@@ -121,7 +128,7 @@ module video_rgb2gray_core #(
     u_video_rgb2gray_gen
     (/*AUTOINST*/
      // Outputs
-     .snk_rgb                           (snk_rgb[RGB_SIZE-1:0]),
+     .snk_rgb                           (rgb2gray_rgb),          // Templated
      // Inputs
      .clk                               (clk),
      .rst                               (rst),

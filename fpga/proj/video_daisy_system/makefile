@@ -28,6 +28,7 @@ VERILOG 	+= $(VIDEO_CORE)/bar_core/video_bar_gen.sv
 VERILOG 	+= $(VIDEO_CORE)/rgb2gray_core/video_rgb2gray_core.sv
 VERILOG 	+= $(VIDEO_CORE)/rgb2gray_core/video_rgb2gray_gen.sv
 VERILOG 	+= $(VIDEO_SYSTEM)/video_daisy_system.sv
+VERILOG 	+= $(VIDEO_SYSTEM)/vidao_daisy_system_avalon_control.sv
 
 VERILOG  	+= $(GIT_ROOT)/fpga/common/rtl/altpllvga.v
 VERILOG  	+= $(PWD)/src/de2_top.sv

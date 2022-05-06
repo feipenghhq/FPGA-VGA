@@ -246,6 +246,14 @@ module de2_top (
     logic [3:0] vga_g;
     logic [3:0] vga_b;
 
+    logic           avs_video_bar_core_address;
+    logic           avs_video_bar_core_write;
+    logic  [31:0]   avs_video_bar_core_writedata;
+
+    logic           avs_video_rgb2gray_core_address;
+    logic           avs_video_rgb2gray_core_write;
+    logic  [31:0]   avs_video_rgb2gray_core_writedata;
+
     assign VGA_R = {vga_r, 6'b0};
     assign VGA_G = {vga_g, 6'b0};
     assign VGA_B = {vga_b, 6'b0};
@@ -271,9 +279,27 @@ module de2_top (
         .vga_b          (vga_b),
         .vga_hsync      (VGA_HS),
         .vga_vsync      (VGA_VS),
-        .avs_video_bar_core_address     (0),
-        .avs_video_bar_core_write       (0),
-        .avs_video_bar_core_writedata   (0)
+        .avs_video_bar_core_address         (avs_video_bar_core_address        ),
+        .avs_video_bar_core_write           (avs_video_bar_core_write          ),
+        .avs_video_bar_core_writedata       (avs_video_bar_core_writedata      ),
+        .avs_video_rgb2gray_core_address    (avs_video_rgb2gray_core_address   ),
+        .avs_video_rgb2gray_core_write      (avs_video_rgb2gray_core_write     ),
+        .avs_video_rgb2gray_core_writedata  (avs_video_rgb2gray_core_writedata )
+    );
+
+    vidao_daisy_system_avalon_control
+    u_vidao_daisy_system_avalon_control (
+        .sys_clk                            (sys_clk),
+        .sys_rst                            (0),
+        .bar_core_bypass                    (SW[0]),
+        .rgb2gray_core_bypass               (SW[1]),
+        .avalon_write                       (KEY[0]),
+        .avs_video_bar_core_address         (avs_video_bar_core_address        ),
+        .avs_video_bar_core_write           (avs_video_bar_core_write          ),
+        .avs_video_bar_core_writedata       (avs_video_bar_core_writedata      ),
+        .avs_video_rgb2gray_core_address    (avs_video_rgb2gray_core_address   ),
+        .avs_video_rgb2gray_core_write      (avs_video_rgb2gray_core_write     ),
+        .avs_video_rgb2gray_core_writedata  (avs_video_rgb2gray_core_writedata )
     );
 
 endmodule
