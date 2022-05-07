@@ -176,7 +176,7 @@ module video_daisy_system #(
     */
     video_sprite_core
     #(
-      .MEM_FILE                         ("sprite.mem"),
+      .MEM_FILE                         ("pikachu_32x32.mem"),
       /*AUTOINSTPARAM*/
       // Parameters
       .RGB_SIZE                         (RGB_SIZE),

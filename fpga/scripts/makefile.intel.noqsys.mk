@@ -53,6 +53,9 @@ $(SOF): $(VERILOG) $(OUT_DIR) pre
 pgm: $(SOF)
 	quartus_pgm --mode JTAG -o "p;$(SOF)"
 
+pgmonly:
+	quartus_pgm --mode JTAG -o "p;$(SOF)"
+
 clean: clean_qsys
 	rm -rf $(OUT_DIR)
 

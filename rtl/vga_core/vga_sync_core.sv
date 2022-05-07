@@ -29,12 +29,12 @@ module vga_sync_core #(
     output                  line_buffer_rdy,
 
     // vga interface
-    output reg [RSIZE-1:0]  vga_r,
-    output reg [GSIZE-1:0]  vga_g,
-    output reg [BSIZE-1:0]  vga_b,
+    output [RSIZE-1:0]      vga_r,
+    output [GSIZE-1:0]      vga_g,
+    output [BSIZE-1:0]      vga_b,
 
-    output reg              vga_hsync,
-    output reg              vga_vsync
+    output                  vga_hsync,
+    output                  vga_vsync
 );
 
     /*AUTOREG*/

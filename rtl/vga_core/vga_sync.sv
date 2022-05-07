@@ -70,7 +70,7 @@ module vga_sync #(
                      (h_counter >= `H_DISPLAY+`H_FRONT_PORCH+`H_SYNC_PULSE);
         vga_vsync <= (v_counter <= `V_DISPLAY+`V_FRONT_PORCH-1) ||
                      (v_counter >= `V_DISPLAY+`V_FRONT_PORCH+`V_SYNC_PULSE);
-        {vga_r, vga_g, vga_b} <= vga_src_rgb[RGB_SIZE-1:0];
+        {vga_r, vga_g, vga_b} <= video_on ? vga_src_rgb[RGB_SIZE-1:0] : 0;
     end
 
     always @(posedge pixel_clk) begin

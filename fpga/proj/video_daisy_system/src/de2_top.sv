@@ -254,9 +254,9 @@ module de2_top (
     logic           avs_video_rgb2gray_core_write;
     logic  [31:0]   avs_video_rgb2gray_core_writedata;
 
-    assign VGA_R = {vga_r, 6'b0};
-    assign VGA_G = {vga_g, 6'b0};
-    assign VGA_B = {vga_b, 6'b0};
+    assign VGA_R = {vga_r, {6{vga_r[3]}} };
+    assign VGA_G = {vga_g, {6{vga_g[3]}} };
+    assign VGA_B = {vga_b, {6{vga_b[3]}} };
 
     assign VGA_BLANK = 1'b1;
     assign VGA_SYNC  = 1'b0;
@@ -271,9 +271,9 @@ module de2_top (
     video_daisy_system
     u_video_daisy_system (
         .pixel_clk      (VGA_CLK),
-        .pixel_rst      (0),
+        .pixel_rst      (~KEY[3]),
         .sys_clk        (sys_clk),
-        .sys_rst        (0),
+        .sys_rst        (~KEY[3]),
         .vga_r          (vga_r),
         .vga_g          (vga_g),
         .vga_b          (vga_b),
@@ -293,7 +293,7 @@ module de2_top (
     vidao_daisy_system_avalon_control
     u_vidao_daisy_system_avalon_control (
         .sys_clk                            (sys_clk),
-        .sys_rst                            (0),
+        .sys_rst                            (~KEY[3]),
         .bar_core_bypass                    (SW[0]),
         .rgb2gray_core_bypass               (SW[1]),
         .avalon_write                       (KEY[0]),

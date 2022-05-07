@@ -17,6 +17,7 @@
     parameter SPRITE_HSIZE  = 32,   // 32x32 pixel sprite
     parameter SPRITE_VSIZE  = 32,
     parameter SPRITE_RAM_AW = 10,
+    parameter KEY_COLOR     = 0,
     parameter MEM_FILE      = ""
 ) (
     input                       clk,
@@ -42,15 +43,17 @@
     // Signal Declaration
     // --------------------------------
 
-    logic [`H_SIZE-1:0] x;
-    logic [`V_SIZE-1:0] y;
+    logic signed [`H_SIZE-1:0] x;
+    logic signed [`V_SIZE-1:0] y;
 
     logic x_in_region;
     logic y_in_region;
     logic xy_in_region;
+    logic key_match;
 
     logic [SPRITE_RAM_AW-1:0]   sprite_ram_addr_r;
     logic [RGB_SIZE-1:0]        sprite_ram_dout;
+
 
     // --------------------------------
     // Main logic
@@ -72,15 +75,16 @@
 
     // check if the x, y coordinates is in the sprite region or not,
     // if not then is it not showing the sprite
-    assign x_in_region = ~x[`H_SIZE-1] & (x < SPRITE_HSIZE);
-    assign y_in_region = ~y[`V_SIZE-1] & (y < SPRITE_VSIZE);
+    assign x_in_region = x >= 0 & (x < SPRITE_HSIZE);
+    assign y_in_region = y >= 0 & (y < SPRITE_VSIZE);
     assign xy_in_region = x_in_region & y_in_region;
 
     // convert the x,y coordinates to ram address
-    assign sprite_ram_addr_r = x + y << $clog2(SPRITE_HSIZE);
+    assign sprite_ram_addr_r = x | (y << $clog2(SPRITE_HSIZE));
 
-    // blend the original pixel with the sprite pixel
-    assign sprite_rgb = xy_in_region ? sprite_ram_dout : src_rgb;
+    // chroma−key blending and multiplixing
+    assign key_match = sprite_ram_dout == KEY_COLOR;
+    assign sprite_rgb = (xy_in_region && !key_match) ? sprite_ram_dout : src_rgb;
 
     // --------------------------------
     // Module initialization
