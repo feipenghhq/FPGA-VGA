@@ -282,6 +282,9 @@ module de2_top (
         .avs_video_bar_core_address         (avs_video_bar_core_address        ),
         .avs_video_bar_core_write           (avs_video_bar_core_write          ),
         .avs_video_bar_core_writedata       (avs_video_bar_core_writedata      ),
+        .avs_video_sprite_core_address      (0),
+        .avs_video_sprite_core_write        (0),
+        .avs_video_sprite_core_writedata    (0),
         .avs_video_rgb2gray_core_address    (avs_video_rgb2gray_core_address   ),
         .avs_video_rgb2gray_core_write      (avs_video_rgb2gray_core_write     ),
         .avs_video_rgb2gray_core_writedata  (avs_video_rgb2gray_core_writedata )

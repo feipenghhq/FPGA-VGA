@@ -36,6 +36,10 @@ module video_daisy_system #(
     input                   avs_video_bar_core_write,
     input  [31:0]           avs_video_bar_core_writedata,
 
+    input [10:0]            avs_video_sprite_core_address,
+    input                   avs_video_sprite_core_write,
+    input [31:0]            avs_video_sprite_core_writedata,
+
     input                   avs_video_rgb2gray_core_address,
     input                   avs_video_rgb2gray_core_write,
     input  [31:0]           avs_video_rgb2gray_core_writedata
@@ -52,6 +56,9 @@ module video_daisy_system #(
     /*AUTOWIRE*/
 
     localparam PIPELINE = 1;
+    localparam SPRITE_HSIZE  = 32;   // 32x32 pixel sprite
+    localparam SPRITE_VSIZE  = 32;
+    localparam SPRITE_RAM_AW = 10;
 
     logic [`H_SIZE-1:0]     fc_hcount;
     logic [`V_SIZE-1:0]     fc_vcount;
@@ -63,6 +70,11 @@ module video_daisy_system #(
     logic                   video_bar_core_src_rdy;
     logic [RGB_SIZE-1:0]    video_bar_core_src_rgb;
     logic                   video_bar_core_src_vld;
+
+    vga_fc_t                video_sprite_core_src_fc;
+    logic                   video_sprite_core_src_rdy;
+    logic [RGB_SIZE-1:0]    video_sprite_core_src_rgb;
+    logic                   video_sprite_core_src_vld;
 
     vga_fc_t                video_rgb2gray_core_src_fc;
     logic                   video_rgb2gray_core_src_rdy;
@@ -122,16 +134,8 @@ module video_daisy_system #(
      .clk           (sys_clk),
      .rst           (sys_rst),
      .avs_\(.*\)    (avs_video_bar_core_\1),
-     // src
-     .src_vld       (video_bar_core_src_vld),
-     .src_rdy       (video_bar_core_src_rdy),
-     .src_fc        (video_bar_core_src_fc),
-     .src_rgb       (video_bar_core_src_rgb),
-     // sink
-     .snk_vld       (video_rgb2gray_core_src_vld),
-     .snk_rdy       (video_rgb2gray_core_src_rdy),
-     .snk_fc        (video_rgb2gray_core_src_fc),
-     .snk_rgb       (video_rgb2gray_core_src_rgb),
+     .src_\(.*\)    (video_bar_core_src_\1[]),
+     .snk_\(.*\)    (video_sprite_core_src_\1[]),
     );
     */
     video_bar_core
@@ -146,11 +150,11 @@ module video_daisy_system #(
     (/*AUTOINST*/
      // Interfaces
      .src_fc                            (video_bar_core_src_fc), // Templated
-     .snk_fc                            (video_rgb2gray_core_src_fc), // Templated
+     .snk_fc                            (video_sprite_core_src_fc), // Templated
      // Outputs
      .src_rdy                           (video_bar_core_src_rdy), // Templated
-     .snk_vld                           (video_rgb2gray_core_src_vld), // Templated
-     .snk_rgb                           (video_rgb2gray_core_src_rgb), // Templated
+     .snk_vld                           (video_sprite_core_src_vld), // Templated
+     .snk_rgb                           (video_sprite_core_src_rgb[RGB_SIZE-1:0]), // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
@@ -158,7 +162,44 @@ module video_daisy_system #(
      .avs_address                       (avs_video_bar_core_address), // Templated
      .avs_writedata                     (avs_video_bar_core_writedata), // Templated
      .src_vld                           (video_bar_core_src_vld), // Templated
-     .src_rgb                           (video_bar_core_src_rgb), // Templated
+     .src_rgb                           (video_bar_core_src_rgb[RGB_SIZE-1:0]), // Templated
+     .snk_rdy                           (video_sprite_core_src_rdy)); // Templated
+
+    /* video_sprite_core AUTO_TEMPLATE (
+     .clk           (sys_clk),
+     .rst           (sys_rst),
+     .avs_\(.*\)    (avs_video_sprite_core_\1[]),
+     .src_\(.*\)    (video_sprite_core_src_\1[]),
+     .snk_\(.*\)    (video_rgb2gray_core_src_\1[]),
+
+    );
+    */
+    video_sprite_core
+    #(
+      .MEM_FILE                         ("sprite.mem"),
+      /*AUTOINSTPARAM*/
+      // Parameters
+      .RGB_SIZE                         (RGB_SIZE),
+      .SPRITE_HSIZE                     (SPRITE_HSIZE),
+      .SPRITE_VSIZE                     (SPRITE_VSIZE),
+      .SPRITE_RAM_AW                    (SPRITE_RAM_AW))
+    u_video_sprite_core
+    (/*AUTOINST*/
+     // Interfaces
+     .src_fc                            (video_sprite_core_src_fc), // Templated
+     .snk_fc                            (video_rgb2gray_core_src_fc), // Templated
+     // Outputs
+     .src_rdy                           (video_sprite_core_src_rdy), // Templated
+     .snk_vld                           (video_rgb2gray_core_src_vld), // Templated
+     .snk_rgb                           (video_rgb2gray_core_src_rgb[RGB_SIZE-1:0]), // Templated
+     // Inputs
+     .clk                               (sys_clk),               // Templated
+     .rst                               (sys_rst),               // Templated
+     .avs_write                         (avs_video_sprite_core_write), // Templated
+     .avs_address                       (avs_video_sprite_core_address[SPRITE_RAM_AW:0]), // Templated
+     .avs_writedata                     (avs_video_sprite_core_writedata[31:0]), // Templated
+     .src_vld                           (video_sprite_core_src_vld), // Templated
+     .src_rgb                           (video_sprite_core_src_rgb[RGB_SIZE-1:0]), // Templated
      .snk_rdy                           (video_rgb2gray_core_src_rdy)); // Templated
 
 
@@ -167,17 +208,9 @@ module video_daisy_system #(
      .clk           (sys_clk),
      .rst           (sys_rst),
      .avs_\(.*\)    (avs_video_rgb2gray_core_\1),
-     // src
-     .src_vld       (video_rgb2gray_core_src_vld),
-     .src_rdy       (video_rgb2gray_core_src_rdy),
-     .src_fc        (video_rgb2gray_core_src_fc),
-     .src_rgb       (video_rgb2gray_core_src_rgb),
-     // sink
-     .snk_vld       (line_buffer_vld),
-     .snk_rdy       (line_buffer_rdy),
-     .snk_fc        (line_buffer_fc),
-     .snk_rgb       (line_buffer_rgb),
-    );
+     .src_\(.*\)    (video_rgb2gray_core_src_\1[]),
+     .snk_\(.*\)    (line_buffer_\1[]),
+    )
     */
     video_rgb2gray_core
     #(/*AUTOINSTPARAM*/
@@ -194,7 +227,7 @@ module video_daisy_system #(
      // Outputs
      .src_rdy                           (video_rgb2gray_core_src_rdy), // Templated
      .snk_vld                           (line_buffer_vld),       // Templated
-     .snk_rgb                           (line_buffer_rgb),       // Templated
+     .snk_rgb                           (line_buffer_rgb[RGB_SIZE-1:0]), // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
@@ -202,7 +235,7 @@ module video_daisy_system #(
      .avs_address                       (avs_video_rgb2gray_core_address), // Templated
      .avs_writedata                     (avs_video_rgb2gray_core_writedata), // Templated
      .src_vld                           (video_rgb2gray_core_src_vld), // Templated
-     .src_rgb                           (video_rgb2gray_core_src_rgb), // Templated
+     .src_rgb                           (video_rgb2gray_core_src_rgb[RGB_SIZE-1:0]), // Templated
      .snk_rdy                           (line_buffer_rdy));       // Templated
 
 

@@ -12,7 +12,8 @@
 
 module video_sprite_ram #(
     parameter AW = 10,
-    parameter DW = 12
+    parameter DW = 12,
+    parameter MEM_FILE = ""
 ) (
     input               clk,
     input               we,
@@ -28,5 +29,11 @@ module video_sprite_ram #(
         if (we) ram[addr_w] <= din;
         dout <= ram[addr_r];
     end
+
+    generate
+        if (MEM_FILE != "") begin
+            initial $readmemh(MEM_FILE, ram);
+        end
+    endgenerate
 
 endmodule

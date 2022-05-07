@@ -43,8 +43,11 @@ sof : $(SOF)
 
 #########################################################
 
-$(SOF): $(VERILOG)
+
+$(OUT_DIR):
 	mkdir -p $(OUT_DIR)
+
+$(SOF): $(VERILOG) $(OUT_DIR) pre
 	cd $(OUT_DIR) && quartus_sh --64bit -t $(SCRIPT_DIR)/build.tcl
 
 pgm: $(SOF)

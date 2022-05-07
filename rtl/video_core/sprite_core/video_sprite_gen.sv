@@ -16,7 +16,8 @@
     parameter RGB_SIZE      = 12,
     parameter SPRITE_HSIZE  = 32,   // 32x32 pixel sprite
     parameter SPRITE_VSIZE  = 32,
-    parameter SPRITE_RAM_AW = 10
+    parameter SPRITE_RAM_AW = 10,
+    parameter MEM_FILE      = ""
 ) (
     input                       clk,
     input                       rst,
@@ -88,7 +89,8 @@
     video_sprite_ram
     #(
         .AW(SPRITE_RAM_AW),
-        .DW(RGB_SIZE)
+        .DW(RGB_SIZE),
+        .MEM_FILE(MEM_FILE)
     )
     u_video_sprite_ram
     (
