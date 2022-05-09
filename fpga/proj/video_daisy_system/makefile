@@ -22,4 +22,4 @@ PIN      	+= $(PWD)/src/DE2_pin_assignment.tcl
 include $(GIT_ROOT)/fpga/scripts/makefile.intel.noqsys.mk
 
 pre: $(OUT_DIR)
-	cp -rfl $(GIT_ROOT)/rtl/video_daisy_system/pikachu_32x32.mem $(OUT_DIR)/.
+	cp -rfl $(GIT_ROOT)/rtl/video_daisy_system/*.mem $(OUT_DIR)/.

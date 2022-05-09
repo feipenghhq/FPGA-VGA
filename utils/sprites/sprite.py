@@ -12,7 +12,7 @@
 
 #
 # Usage:
-# ./sprite_mem.py <image> <output_name>
+# ./sprite4.py <image> <output_name>
 #
 
 import sys
