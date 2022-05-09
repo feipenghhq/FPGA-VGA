@@ -12,10 +12,11 @@
 `include "vga.svh"
 
 module vga_sync #(
-    parameter RSIZE     = 4,
-    parameter GSIZE     = 4,
-    parameter BSIZE     = 4,
-    parameter RGB_SIZE  = 12
+    parameter RSIZE = 4,
+    parameter GSIZE = 4,
+    parameter BSIZE = 4,
+    parameter RGB_SIZE = 12,
+    parameter START_DELAY = 10
 ) (
     input                   pixel_clk,
     input                   pixel_rst,
@@ -35,6 +36,8 @@ module vga_sync #(
     // --------------------------------
     // Signal Declaration
     // --------------------------------
+
+
 
     localparam          S_SYNC = 0,
                         S_DISP = 1;
@@ -94,7 +97,10 @@ module vga_sync #(
     assign h_disp_end = h_counter == `H_DISPLAY-1;
     assign v_disp_end = v_counter == `V_DISPLAY-1;
 
-    assign h_video_on = h_counter <= `H_DISPLAY-1;
+    // not sure why, but we need to delay the color start by
+    // some amount after the display area to make it work correctly
+    // for the DE2 board
+    assign h_video_on = (h_counter >= START_DELAY) && (h_counter <= `H_DISPLAY+START_DELAY-1);
     assign v_video_on = v_counter <= `V_DISPLAY-1;
     assign video_on   = h_video_on & v_video_on;
 

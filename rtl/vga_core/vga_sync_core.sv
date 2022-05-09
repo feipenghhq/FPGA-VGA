@@ -12,10 +12,11 @@
 
 
 module vga_sync_core #(
-    parameter RSIZE     = 4,
-    parameter GSIZE     = 4,
-    parameter BSIZE     = 4,
-    parameter RGB_SIZE  = 12
+    parameter RSIZE = 4,
+    parameter GSIZE = 4,
+    parameter BSIZE = 4,
+    parameter RGB_SIZE  = 12,
+    parameter START_DELAY = 12
 ) (
     input                   pixel_clk,
     input                   pixel_rst,
@@ -85,7 +86,8 @@ module vga_sync_core #(
       .RSIZE                            (RSIZE),
       .GSIZE                            (GSIZE),
       .BSIZE                            (BSIZE),
-      .RGB_SIZE                         (RGB_SIZE))
+      .RGB_SIZE                         (RGB_SIZE),
+      .START_DELAY                      (START_DELAY))
     u_vga_sync
     (/*AUTOINST*/
      // Outputs
