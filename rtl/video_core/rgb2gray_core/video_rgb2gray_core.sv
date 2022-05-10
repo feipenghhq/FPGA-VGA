@@ -52,11 +52,13 @@ module video_rgb2gray_core #(
 
     // Register interface
     // 0x0 ctrl
-    reg                 ctrl_bypass;
-    logic               ctrl_wen;
+    reg                     ctrl_bypass;
+    logic                   ctrl_wen;
 
     logic [RGB_SIZE-1:0]    stage_out_rgb;
     logic [RGB_SIZE-1:0]    rgb2gray_rgb;
+
+    logic                   src_fire;
 
     /*AUTOREG*/
 
@@ -84,6 +86,7 @@ module video_rgb2gray_core #(
     // --------------------------------
 
     assign snk_rgb = ctrl_bypass ? stage_out_rgb : rgb2gray_rgb;
+    assign src_fire = src_vld & src_rdy;
 
     // --------------------------------
     // Module Declaration
@@ -118,25 +121,25 @@ module video_rgb2gray_core #(
      .stage_in_rgb                      (src_rgb),               // Templated
      .stage_out_rdy                     (snk_rdy));               // Templated
 
-    /* video_rgb2gray_gen AUTO_TEMPLATE (
-        .snk_rgb       (rgb2gray_rgb),
-    );
-    */
     video_rgb2gray_gen
-    #(/*AUTOINSTPARAM*/
-      // Parameters
+    #(
       .RSIZE                            (RSIZE),
       .GSIZE                            (GSIZE),
       .BSIZE                            (BSIZE),
-      .RGB_SIZE                         (RGB_SIZE))
+      .RGB_SIZE                         (RGB_SIZE)
+    )
     u_video_rgb2gray_gen
-    (/*AUTOINST*/
-     // Outputs
-     .snk_rgb                           (rgb2gray_rgb),          // Templated
-     // Inputs
-     .clk                               (clk),
-     .rst                               (rst),
-     .src_rgb                           (src_rgb[RGB_SIZE-1:0]));
+    (
+     .clk           (clk),
+     .rst           (rst),
+     .rgb_in_vld    (src_vld),
+     .rgb_in_rdy    (),
+     .rgb_in        (src_rgb),
+     .rgb_out_vld   (),
+     .rgb_out_rdy   (snk_rdy),
+     .rgb_out       (rgb2gray_rgb)
+    );
+
 
 endmodule
 

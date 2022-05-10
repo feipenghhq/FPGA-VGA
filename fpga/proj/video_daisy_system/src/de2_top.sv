@@ -240,9 +240,11 @@ module de2_top (
     /////////////////////////////////////////////
 
     logic pixel_clk;
+    logic pixel_rst;
     logic sys_clk;
-
+    logic sys_rst;
     logic avs_write;
+
 
     logic [3:0] vga_r;
     logic [3:0] vga_g;
@@ -263,6 +265,9 @@ module de2_top (
     assign VGA_BLANK = 1'b1;
     assign VGA_SYNC  = 1'b0;
 
+    assign sys_rst = ~KEY[3];
+    assign pixel_rst = ~KEY[3];
+
     altpllvga u_altpllvga
     (
         .inclk0 (CLOCK_50),
@@ -273,9 +278,9 @@ module de2_top (
     video_daisy_system
     u_video_daisy_system (
         .pixel_clk      (VGA_CLK),
-        .pixel_rst      (~KEY[3]),
+        .pixel_rst      (pixel_rst),
         .sys_clk        (sys_clk),
-        .sys_rst        (~KEY[3]),
+        .sys_rst        (sys_rst),
         .vga_r          (vga_r),
         .vga_g          (vga_g),
         .vga_b          (vga_b),

@@ -24,8 +24,12 @@ module video_rgb2gray_gen #(
 ) (
     input                   clk,
     input                   rst,
-    input  [RGB_SIZE-1:0]   src_rgb,
-    output [RGB_SIZE-1:0]   snk_rgb
+    input                   rgb_in_vld,
+    output                  rgb_in_rdy,
+    input  [RGB_SIZE-1:0]   rgb_in,
+    output                  rgb_out_vld,
+    input                   rgb_out_rdy,
+    output [RGB_SIZE-1:0]   rgb_out
 );
 
     // conver the weight into 8 bit values
@@ -44,21 +48,41 @@ module video_rgb2gray_gen #(
     logic [BSIZE-1:0]       s0_b;
     logic [SIZE-1:0]        gray;
 
-    reg [RGB_SIZE-1:0]      rgb_s0;
-    reg [RGB_SIZE-1:0]      rgb_s1;
+    logic                   s0_rdy;
+    logic                   s0_vld;
+    logic [RGB_SIZE-1:0]    s0_data;
+    logic [RGB_SIZE-1:0]    s0_data_post;
+
+    logic [RGB_SIZE-1:0]    s1_data;
 
     // --------------------------------
     // Main logic
     // --------------------------------
 
-    assign {s0_r, s0_g, s0_b} = rgb_s0;
+    assign {s0_r, s0_g, s0_b} = s0_data;
+    assign s0_data_post = s0_r * RW + s0_g * GW + s0_b * BW;
+    assign gray = s1_data[RGB_SIZE-1-:SIZE];
+    assign rgb_out = {gray, gray, gray};
 
-    always @(posedge clk) begin
-        rgb_s0 <= src_rgb;
-        rgb_s1 <= s0_r * RW + s0_g * GW + s0_b * BW;
-    end
+    // --------------------------------
+    // Pipeline module
+    // --------------------------------
 
-    assign gray = rgb_s1[RGB_SIZE-1-:SIZE];
-    assign snk_rgb = {gray, gray, gray};
+    video_data_pipeline
+    #(.WIDTH(RGB_SIZE), .PIPELINE(1))
+    u_stage_0
+    (.clk(clk),                  .rst(rst),
+     .pipe_in_vld(rgb_in_vld),   .pipe_in_rdy(rgb_in_rdy),   .pipe_in_data(rgb_in),
+     .pipe_out_rdy(s0_rdy),      .pipe_out_vld(s0_vld),      .pipe_out_data(s0_data)
+    );
+
+    video_data_pipeline
+    #(.WIDTH(RGB_SIZE), .PIPELINE(1))
+    u_stage_1
+    (.clk(clk),                     .rst(rst),
+     .pipe_in_vld(s0_vld),          .pipe_in_rdy(s0_rdy),       .pipe_in_data(s0_data_post),
+     .pipe_out_rdy(rgb_out_rdy),    .pipe_out_vld(rgb_out_vld), .pipe_out_data(s1_data)
+    );
+
 
 endmodule
