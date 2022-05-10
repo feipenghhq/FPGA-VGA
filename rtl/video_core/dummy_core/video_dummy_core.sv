@@ -5,9 +5,8 @@
  * Date Created: 05/01/2022
  * ---------------------------------------------------------------
  * Video Dummy core
- *
- * ---------------------------------------------------------------
- * Reference: <fpga prototyping by vhdl examples: xilinx microblaze mcs soc>
+ * - Feed the input directly to the output
+ * - Optional pipeline module
  * ---------------------------------------------------------------
  */
 

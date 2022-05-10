@@ -5,8 +5,20 @@
  * Date Created: 05/01/2022
  * ---------------------------------------------------------------
  * VGA daisy system
+ *
+ * This module contains a daisy chain of different video cores
+ *
  * ---------------------------------------------------------------
  */
+
+/*
+  _________      ______      _____________      _____________      __________      __________
+ |  Frame  |    | bar  |    |   pikachu   |    |   pacman    |    | rgb2gray |    |          |
+ | counter | -> | core | -> | sprite core | -> | sprite core | -> |   core   | -> | vga_sync | => To Display
+ |_________|    |______|    |_____________|    |_____________|    |__________|    |__________|
+
+*/
+
 
 `include "vga.svh"
 
@@ -34,11 +46,19 @@ module video_daisy_system #(
     // video bar core avalon insterface
     input                   avs_video_bar_core_address,
     input                   avs_video_bar_core_write,
-    input  [31:0]           avs_video_bar_core_writedata,
+    input [31:0]            avs_video_bar_core_writedata,
+
+    input [10:0]            avs_video_sprite_core_address,
+    input                   avs_video_sprite_core_write,
+    input [31:0]            avs_video_sprite_core_writedata,
+
+    input [12:0]            avs_pacman_core_address,
+    input                   avs_pacman_core_write,
+    input [31:0]            avs_pacman_core_writedata,
 
     input                   avs_video_rgb2gray_core_address,
     input                   avs_video_rgb2gray_core_write,
-    input  [31:0]           avs_video_rgb2gray_core_writedata
+    input [31:0]            avs_video_rgb2gray_core_writedata
 );
 
     // --------------------------------
@@ -88,14 +108,6 @@ module video_daisy_system #(
     logic                   line_buffer_vld;
     logic                   line_buffer_rdy;
 
-    logic [10:0]            avs_video_sprite_core_address = 0;
-    logic                   avs_video_sprite_core_write = 0;
-    logic [31:0]            avs_video_sprite_core_writedata = 0;
-
-    logic [SPRITE_RAM_AW:0] avs_pacman_core_address = 0;
-    logic                   avs_pacman_core_write = 0;
-    logic [31:0]            avs_pacman_core_writedata = 0;
-
     // --------------------------------
     // Main logic
     // --------------------------------
@@ -142,8 +154,8 @@ module video_daisy_system #(
      .clk           (sys_clk),
      .rst           (sys_rst),
      .avs_\(.*\)    (avs_video_bar_core_\1),
-     .src_\(.*\)    (bar_core_src_\1[]),
-     .snk_\(.*\)    (pikachu_core_src_\1[]),
+     .src_\(.*\)    (bar_core_src_\1),
+     .snk_\(.*\)    (pikachu_core_src_\1),
     );
     */
     video_bar_core
@@ -161,7 +173,7 @@ module video_daisy_system #(
      // Outputs
      .src_rdy                           (bar_core_src_rdy),      // Templated
      .snk_vld                           (pikachu_core_src_vld),  // Templated
-     .snk_rgb                           (pikachu_core_src_rgb[RGB_SIZE-1:0]), // Templated
+     .snk_rgb                           (pikachu_core_src_rgb),  // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
@@ -169,15 +181,15 @@ module video_daisy_system #(
      .avs_address                       (avs_video_bar_core_address), // Templated
      .avs_writedata                     (avs_video_bar_core_writedata), // Templated
      .src_vld                           (bar_core_src_vld),      // Templated
-     .src_rgb                           (bar_core_src_rgb[RGB_SIZE-1:0]), // Templated
+     .src_rgb                           (bar_core_src_rgb),      // Templated
      .snk_rdy                           (pikachu_core_src_rdy));  // Templated
 
     /* video_sprite_core AUTO_TEMPLATE (
      .clk           (sys_clk),
      .rst           (sys_rst),
-     .avs_\(.*\)    (avs_video_sprite_core_\1[]),
-     .src_\(.*\)    (pikachu_core_src_\1[]),
-     .snk_\(.*\)    (pacman_core_src_\1[]),
+     .avs_\(.*\)    (avs_video_sprite_core_\1),
+     .src_\(.*\)    (pikachu_core_src_\1),
+     .snk_\(.*\)    (pacman_core_src_\1),
 
     );
     */
@@ -198,23 +210,23 @@ module video_daisy_system #(
      // Outputs
      .src_rdy                           (pikachu_core_src_rdy),  // Templated
      .snk_vld                           (pacman_core_src_vld),   // Templated
-     .snk_rgb                           (pacman_core_src_rgb[RGB_SIZE-1:0]), // Templated
+     .snk_rgb                           (pacman_core_src_rgb),   // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
      .avs_write                         (avs_video_sprite_core_write), // Templated
-     .avs_address                       (avs_video_sprite_core_address[SPRITE_RAM_AW:0]), // Templated
-     .avs_writedata                     (avs_video_sprite_core_writedata[31:0]), // Templated
+     .avs_address                       (avs_video_sprite_core_address), // Templated
+     .avs_writedata                     (avs_video_sprite_core_writedata), // Templated
      .src_vld                           (pikachu_core_src_vld),  // Templated
-     .src_rgb                           (pikachu_core_src_rgb[RGB_SIZE-1:0]), // Templated
+     .src_rgb                           (pikachu_core_src_rgb),  // Templated
      .snk_rdy                           (pacman_core_src_rdy));   // Templated
 
-    /* video_sprite_core AUTO_TEMPLATE (
+    /* video_sprite_animation_core AUTO_TEMPLATE (
      .clk           (sys_clk),
      .rst           (sys_rst),
-     .avs_\(.*\)    (avs_pacman_core_\1[]),
-     .src_\(.*\)    (pacman_core_src_\1[]),
-     .snk_\(.*\)    (rgb2gray_core_src_\1[]),
+     .avs_\(.*\)    (avs_pacman_core_\1),
+     .src_\(.*\)    (pacman_core_src_\1),
+     .snk_\(.*\)    (rgb2gray_core_src_\1),
 
     );
     */
@@ -243,15 +255,15 @@ module video_daisy_system #(
      // Outputs
      .src_rdy                           (pacman_core_src_rdy),   // Templated
      .snk_vld                           (rgb2gray_core_src_vld), // Templated
-     .snk_rgb                           (rgb2gray_core_src_rgb[RGB_SIZE-1:0]), // Templated
+     .snk_rgb                           (rgb2gray_core_src_rgb), // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
      .avs_write                         (avs_pacman_core_write), // Templated
-     .avs_address                       (avs_pacman_core_address[SPRITE_RAM_AW:0]), // Templated
-     .avs_writedata                     (avs_pacman_core_writedata[31:0]), // Templated
+     .avs_address                       (avs_pacman_core_address), // Templated
+     .avs_writedata                     (avs_pacman_core_writedata), // Templated
      .src_vld                           (pacman_core_src_vld),   // Templated
-     .src_rgb                           (pacman_core_src_rgb[RGB_SIZE-1:0]), // Templated
+     .src_rgb                           (pacman_core_src_rgb),   // Templated
      .snk_rdy                           (rgb2gray_core_src_rdy)); // Templated
 
 
@@ -260,8 +272,8 @@ module video_daisy_system #(
      .clk           (sys_clk),
      .rst           (sys_rst),
      .avs_\(.*\)    (avs_video_rgb2gray_core_\1),
-     .src_\(.*\)    (rgb2gray_core_src_\1[]),
-     .snk_\(.*\)    (line_buffer_\1[]),
+     .src_\(.*\)    (rgb2gray_core_src_\1),
+     .snk_\(.*\)    (line_buffer_\1),
     )
     */
     video_rgb2gray_core
@@ -279,7 +291,7 @@ module video_daisy_system #(
      // Outputs
      .src_rdy                           (rgb2gray_core_src_rdy), // Templated
      .snk_vld                           (line_buffer_vld),       // Templated
-     .snk_rgb                           (line_buffer_rgb[RGB_SIZE-1:0]), // Templated
+     .snk_rgb                           (line_buffer_rgb),       // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
@@ -287,7 +299,7 @@ module video_daisy_system #(
      .avs_address                       (avs_video_rgb2gray_core_address), // Templated
      .avs_writedata                     (avs_video_rgb2gray_core_writedata), // Templated
      .src_vld                           (rgb2gray_core_src_vld), // Templated
-     .src_rgb                           (rgb2gray_core_src_rgb[RGB_SIZE-1:0]), // Templated
+     .src_rgb                           (rgb2gray_core_src_rgb), // Templated
      .snk_rdy                           (line_buffer_rdy));       // Templated
 
 

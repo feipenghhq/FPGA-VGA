@@ -12,25 +12,8 @@ PWD 	 = $(shell pwd)
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-COMMON			= $(GIT_ROOT)/rtl/common
-VGA_CORE 		= $(GIT_ROOT)/rtl/vga_core
-VIDEO_SYSTEM 	= $(GIT_ROOT)/rtl/video_system
-VIDEO_CORE		= $(GIT_ROOT)/rtl/video_core
-
-VERILOG_SOURCES	+= $(VGA_CORE)/vga_async_fifo.sv
-VERILOG_SOURCES	+= $(VGA_CORE)/vga_dsync.sv
-VERILOG_SOURCES	+= $(VGA_CORE)/vga_frame_counter.sv
-VERILOG_SOURCES	+= $(VGA_CORE)/vga_line_buffer.sv
-VERILOG_SOURCES	+= $(VGA_CORE)/vga_sync_core.sv
-VERILOG_SOURCES	+= $(VGA_CORE)/vga_sync.sv
-VERILOG_SOURCES	+= $(COMMON)/video_core_pipeline.sv
-VERILOG_SOURCES	+= $(COMMON)/video_core_stages.sv
-VERILOG_SOURCES	+= $(VIDEO_CORE)/bar_core/video_bar_core.sv
-VERILOG_SOURCES	+= $(VIDEO_CORE)/bar_core/video_bar_gen.sv
-VERILOG_SOURCES	+= $(VIDEO_CORE)/rgb2gray_core/video_rgb2gray_core.sv
-VERILOG_SOURCES	+= $(VIDEO_CORE)/rgb2gray_core/video_rgb2gray_gen.sv
-VERILOG_SOURCES	+= $(VIDEO_SYSTEM)/video_daisy_system.sv
-
+include $(GIT_ROOT)/rtl/video_daisy_system/makefile.filelist.inc
+VERILOG_SOURCES += $(VERILOG)
 TOPLEVEL = video_daisy_system
 
 MODULE 	 = test

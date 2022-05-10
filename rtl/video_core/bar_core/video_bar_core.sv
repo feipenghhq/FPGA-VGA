@@ -6,13 +6,18 @@
  * ---------------------------------------------------------------
  * Bar pattern generator core
  *
- * Register Spec
- * - 0x0 ctrl
- *  - bit [0:0] bypass = 0
- * ---------------------------------------------------------------
- * Reference: <fpga prototyping by vhdl examples: xilinx microblaze mcs soc>
+ * - This module has 0 or 1 latency depending on whether the
+ *   "PIPELINE" parameter is set ot not
  * ---------------------------------------------------------------
  */
+
+/* ---------------------------------------------------------------
+ * Register Spec
+ * ---------------------------------------------------------------
+ * - 0x0 ctrl                   // control register
+ *      - bit [0:0] bypass = 0  // by pass the current core
+ * ---------------------------------------------------------------
+*/
 
 `include "vga.svh"
 
@@ -21,7 +26,7 @@
     parameter GSIZE     = 4,
     parameter BSIZE     = 4,
     parameter RGB_SIZE  = 12,
-    parameter PIPELINE  = 1
+    parameter PIPELINE  = 1 // PIPELINE = 0 => 0 latency, PIPELINE = 1 => 1 latency
 ) (
     input                       clk,
     input                       rst,
@@ -151,5 +156,3 @@ endmodule
 // Local Variables:
 // verilog-library-flags:("-y ../../common/")
 // End:
-
-

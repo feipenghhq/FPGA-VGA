@@ -242,6 +242,8 @@ module de2_top (
     logic pixel_clk;
     logic sys_clk;
 
+    logic avs_write;
+
     logic [3:0] vga_r;
     logic [3:0] vga_g;
     logic [3:0] vga_b;
@@ -279,27 +281,26 @@ module de2_top (
         .vga_b          (vga_b),
         .vga_hsync      (VGA_HS),
         .vga_vsync      (VGA_VS),
-        .avs_video_bar_core_address         (avs_video_bar_core_address        ),
-        .avs_video_bar_core_write           (avs_video_bar_core_write          ),
-        .avs_video_bar_core_writedata       (avs_video_bar_core_writedata      ),
-        .avs_video_rgb2gray_core_address    (avs_video_rgb2gray_core_address   ),
-        .avs_video_rgb2gray_core_write      (avs_video_rgb2gray_core_write     ),
-        .avs_video_rgb2gray_core_writedata  (avs_video_rgb2gray_core_writedata )
+        .avs_video_bar_core_address         (0),
+        .avs_video_bar_core_write           (avs_write),
+        .avs_video_bar_core_writedata       (SW[0]),
+        .avs_video_sprite_core_address      (0),
+        .avs_video_sprite_core_write        (avs_write),
+        .avs_video_sprite_core_writedata    (SW[1]),
+        .avs_pacman_core_address            (0),
+        .avs_pacman_core_write              (avs_write),
+        .avs_pacman_core_writedata          (SW[2]),
+        .avs_video_rgb2gray_core_address    (0),
+        .avs_video_rgb2gray_core_write      (avs_write),
+        .avs_video_rgb2gray_core_writedata  (SW[3]),
     );
 
-    vidao_daisy_system_avalon_control
-    u_vidao_daisy_system_avalon_control (
-        .sys_clk                            (sys_clk),
-        .sys_rst                            (~KEY[3]),
-        .bar_core_bypass                    (SW[0]),
-        .rgb2gray_core_bypass               (SW[1]),
-        .avalon_write                       (KEY[0]),
-        .avs_video_bar_core_address         (avs_video_bar_core_address        ),
-        .avs_video_bar_core_write           (avs_video_bar_core_write          ),
-        .avs_video_bar_core_writedata       (avs_video_bar_core_writedata      ),
-        .avs_video_rgb2gray_core_address    (avs_video_rgb2gray_core_address   ),
-        .avs_video_rgb2gray_core_write      (avs_video_rgb2gray_core_write     ),
-        .avs_video_rgb2gray_core_writedata  (avs_video_rgb2gray_core_writedata )
+    vidao_daisy_system_bypass_control
+    u_vidao_daisy_system_bypass_control (
+        .sys_clk        (sys_clk),
+        .sys_rst        (sys_rst),
+        .bypass_write   (KEY[0]),
+        .avs_write      (avs_write),
     );
 
 endmodule

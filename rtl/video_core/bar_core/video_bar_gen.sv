@@ -6,13 +6,12 @@
  * ---------------------------------------------------------------
  * Bar pattern generator
  *
- * This core generate 3 pattern
+ * This core generate 3 patterns
  * 1. 16 shade of gray color
  * 2. 8 prime color
  * 3. a continuous rainbow color spectrum
  *
- * ---------------------------------------------------------------
- * Reference: <fpga prototyping by vhdl examples: xilinx microblaze mcs soc>
+ * This module has 0 latency
  * ---------------------------------------------------------------
  */
 

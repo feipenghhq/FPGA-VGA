@@ -5,8 +5,12 @@
  * Date Created: 05/09/2022
  * ---------------------------------------------------------------
  * Sprite generation logic with animation
- * ---------------------------------------------------------------
- * Reference: <fpga prototyping by vhdl examples: xilinx microblaze mcs soc>
+ *
+ * - The main function is similar to video_sprite_gen
+ * Here is the difference:
+ * - The sprite ram contains multiple sprite images to show animation.
+ * - The upper bits of the sprite ram address are index to different sprite images
+ * - The sprite image will be changing in a fixed rate to create the animation
  * ---------------------------------------------------------------
  */
 
@@ -92,7 +96,9 @@
             if (sprite_rate_counter_fire) sprite_rate_counter <= sprite_rate;
             else if (sprite_vld) sprite_rate_counter <= sprite_rate_counter - 1'b1;
             if (sprite_rate_counter_fire) begin
+                /* verilator lint_off WIDTH */
                 if (sprite_idx == SPRITE_NUM-1) sprite_idx <= 0;
+                /* verilator lint_on WIDTH */
                 else sprite_idx <= sprite_idx + 1'b1;
             end
         end

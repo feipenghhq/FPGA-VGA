@@ -4,6 +4,7 @@ results.xml
 __pycache__
 *.vcd
 *.fst
+*.fst.hier
 *.gtkw
 
 # emacs

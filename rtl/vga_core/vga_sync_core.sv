@@ -4,9 +4,13 @@
  * Author: Heqing Huang
  * Date Created: 05/01/2022
  * ---------------------------------------------------------------
- * VGA sync core
- *  - VGA sync logic
- *  - Line buffer
+ * VGA synchronization core
+ *
+ * Contains the following components:
+ *  - vga_sync
+ *  - vga_line_buffer
+ * Data flow:
+ *  vga_line_buffer => vga_sync
  * ---------------------------------------------------------------
  */
 
@@ -15,7 +19,7 @@ module vga_sync_core #(
     parameter RSIZE = 4,
     parameter GSIZE = 4,
     parameter BSIZE = 4,
-    parameter RGB_SIZE  = 12,
+    parameter RGB_SIZE    = 12,
     parameter START_DELAY = 12
 ) (
     input                   pixel_clk,
@@ -42,9 +46,15 @@ module vga_sync_core #(
 
     /*AUTOWIRE*/
 
-    logic               vga_src_rdy;
-    logic [RGB_SIZE:0]  vga_src_rgb;
-    logic               vga_src_vld;
+    logic                 vga_frame_start;
+    logic                 vga_src_rdy;
+    logic [RGB_SIZE:0]    vga_src_data;
+    logic [RGB_SIZE-1:0]  vga_src_rgb;
+    logic                 vga_src_vld;
+
+    assign vga_src_rgb     = vga_src_data[RGB_SIZE-1:0];
+    assign vga_frame_start = vga_src_data[RGB_SIZE];
+
 
     /* vga_line_buffer AUTO_TEMPLATE (
         // from source
@@ -56,7 +66,7 @@ module vga_sync_core #(
         // to sink
         .snk_rst    (pixel_rst),
         .snk_clk    (pixel_clk),
-        .snk_data   (vga_src_rgb[]),
+        .snk_data   (vga_src_data[]),
         .snk_vld    (vga_src_vld),
         .snk_rdy    (vga_src_rdy),
     );
@@ -69,7 +79,7 @@ module vga_sync_core #(
     (/*AUTOINST*/
      // Outputs
      .src_rdy                           (line_buffer_rdy),       // Templated
-     .snk_data                          (vga_src_rgb[RGB_SIZE:0]), // Templated
+     .snk_data                          (vga_src_data[RGB_SIZE:0]), // Templated
      .snk_vld                           (vga_src_vld),           // Templated
      // Inputs
      .src_rst                           (sys_rst),               // Templated
@@ -100,7 +110,8 @@ module vga_sync_core #(
      // Inputs
      .pixel_clk                         (pixel_clk),
      .pixel_rst                         (pixel_rst),
-     .vga_src_rgb                       (vga_src_rgb[RGB_SIZE:0]),
+     .vga_frame_start                   (vga_frame_start),
+     .vga_src_rgb                       (vga_src_rgb[RGB_SIZE-1:0]),
      .vga_src_vld                       (vga_src_vld));
 
 endmodule

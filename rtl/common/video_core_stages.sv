@@ -27,7 +27,7 @@ module video_core_stages #(
     input                       stage_out_rdy,
     output reg                  stage_out_vld,
     output vga_fc_t             stage_out_fc,
-    output reg [RGB_SIZE-1:0]   stage_out_rgb
+    output [RGB_SIZE-1:0]       stage_out_rgb
 );
 
     /*AUTOREG*/
@@ -50,10 +50,8 @@ module video_core_stages #(
     (
         .RGB_SIZE   (RGB_SIZE),
         .PIPELINE   (1),
-
         .clk        (clk),
         .rst        (rst),
-
         .\(.*\)     (\1[i]),
     );
     */
@@ -83,7 +81,7 @@ module video_core_stages #(
              .pipe_in_rgb               (pipe_in_rgb[i]),        // Templated
              .pipe_out_rdy              (pipe_out_rdy[i]));       // Templated
 
-            if (i != 0) begin
+            if (i > 0) begin
                 assign pipe_out_rdy[i-1] = pipe_in_rdy[i];
                 assign pipe_in_vld[i] = pipe_out_vld[i-1];
                 assign pipe_in_rgb[i] = pipe_out_rgb[i-1];

@@ -22,4 +22,4 @@ VERILOG 	+= $(VIDEO_CORE)/sprite_core/video_sprite_ram.sv
 VERILOG 	+= $(VIDEO_CORE)/sprite_core/video_sprite_animation_core.sv
 VERILOG 	+= $(VIDEO_CORE)/sprite_core/video_sprite_animation_gen.sv
 VERILOG 	+= $(VIDEO_SYSTEM)/video_daisy_system.sv
-VERILOG 	+= $(VIDEO_SYSTEM)/vidao_daisy_system_avalon_control.sv
+VERILOG 	+= $(VIDEO_SYSTEM)/vidao_daisy_system_bypass_control.sv

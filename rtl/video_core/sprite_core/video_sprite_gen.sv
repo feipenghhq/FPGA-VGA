@@ -4,9 +4,11 @@
  * Author: Heqing Huang
  * Date Created: 05/05/2022
  * ---------------------------------------------------------------
- * Sprite generation logic
- * ---------------------------------------------------------------
- * Reference: <fpga prototyping by vhdl examples: xilinx microblaze mcs soc>
+ * Sprite gneration/display logic
+ *
+ * - Given a x, y coordinate of the current display pixel,
+ *   read the pixel from sprite ram and return the RGB color of
+ *   the pixel
  * ---------------------------------------------------------------
  */
 
@@ -14,12 +16,12 @@
 
  module video_sprite_gen #(
     parameter RGB_SIZE      = 12,
-    parameter SPRITE_HSIZE  = 32,   // 32x32 pixel sprite
+    parameter SPRITE_HSIZE  = 32,
     parameter SPRITE_VSIZE  = 32,
     parameter SPRITE_RAM_AW = 10,
     parameter KEY_COLOR     = 0,
     parameter MEM_FILE      = ""
-) (
+)(
     input                       clk,
     input                       rst,
 

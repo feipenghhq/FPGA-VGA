@@ -5,6 +5,10 @@
  * Date Created: 05/01/2022
  * ---------------------------------------------------------------
  * VGA line buffer
+ *
+ * - Asynchronous FIFO storing ONE line of the frame.
+ * - The source is from upstream processing/generation logic
+ * - The sink goes to the vga_sync module
  * ---------------------------------------------------------------
  */
 

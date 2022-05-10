@@ -4,15 +4,13 @@
  * Author: Heqing Huang
  * Date Created: 04/30/2022
  * ---------------------------------------------------------------
- * Rgb2gray generator
+ * rgb2gray generator - convert the RGB color to Gray scale
  *
- * We use luminosity to convert RGB to GRAY
+ * We use luminosity algorithm to convert RGB to GRAY
  * Luminosity method: gray = 0.21 ∗ r + 0.72 ∗ g + 0.07 ∗ b
  *
- * This module has a latency of 2
+ * NOTES: This module has fixed latency of 2 (dut to multiplication)
  *
- * ---------------------------------------------------------------
- * Reference: <fpga prototyping by vhdl examples: xilinx microblaze mcs soc>
  * ---------------------------------------------------------------
  */
 

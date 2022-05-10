@@ -5,7 +5,10 @@
  * Date Created: 04/29/2022
  * ---------------------------------------------------------------
  * VGA sync core
- * Generate VGA hsync/vsync signal based on VGA timing
+ *
+ * - Generate VGA hsync/vsync signal based on VGA timing
+ * - Synchronize the pixel frame with the VGA timing
+ * - Drive the R/G/B color read from upstram logic
  * ---------------------------------------------------------------
  */
 
@@ -21,7 +24,8 @@ module vga_sync #(
     input                   pixel_clk,
     input                   pixel_rst,
 
-    input [RGB_SIZE:0]      vga_src_rgb,
+    input                   vga_frame_start,
+    input [RGB_SIZE-1:0]    vga_src_rgb,
     input                   vga_src_vld,
     output logic            vga_src_rdy,
 
@@ -36,8 +40,6 @@ module vga_sync #(
     // --------------------------------
     // Signal Declaration
     // --------------------------------
-
-
 
     localparam          S_SYNC = 0,
                         S_DISP = 1;
@@ -57,24 +59,14 @@ module vga_sync #(
     logic               h_disp_end;
     logic               v_disp_end;
 
-    logic               vga_stream_start;
-
     // --------------------------------
     // main logic
     // --------------------------------
 
 
-    // horizontal and vertical counter logic
+    // horizontal and vertical counter
     assign h_counter_fire = h_counter == `H_COUNT-1;
     assign v_counter_fire = v_counter == `V_COUNT-1;
-
-    always @(posedge pixel_clk) begin
-        vga_hsync <= (h_counter <= `H_DISPLAY+`H_FRONT_PORCH-1) ||
-                     (h_counter >= `H_DISPLAY+`H_FRONT_PORCH+`H_SYNC_PULSE);
-        vga_vsync <= (v_counter <= `V_DISPLAY+`V_FRONT_PORCH-1) ||
-                     (v_counter >= `V_DISPLAY+`V_FRONT_PORCH+`V_SYNC_PULSE);
-        {vga_r, vga_g, vga_b} <= video_on ? vga_src_rgb[RGB_SIZE-1:0] : 0;
-    end
 
     always @(posedge pixel_clk) begin
         if (pixel_rst) begin
@@ -92,26 +84,33 @@ module vga_sync #(
         end
     end
 
+    // generate hsync/vsync and drive rgb rolor value
+    always @(posedge pixel_clk) begin
+        vga_hsync <= (h_counter <= `H_DISPLAY+`H_FRONT_PORCH-1) ||
+                     (h_counter >= `H_DISPLAY+`H_FRONT_PORCH+`H_SYNC_PULSE);
+        vga_vsync <= (v_counter <= `V_DISPLAY+`V_FRONT_PORCH-1) ||
+                     (v_counter >= `V_DISPLAY+`V_FRONT_PORCH+`V_SYNC_PULSE);
+        {vga_r, vga_g, vga_b} <= video_on ? vga_src_rgb[RGB_SIZE-1:0] : 0;
+    end
+
     // displays synchronization logic
     assign scan_end   = h_counter_fire & v_counter_fire;
     assign h_disp_end = h_counter == `H_DISPLAY-1;
     assign v_disp_end = v_counter == `V_DISPLAY-1;
 
-    // not sure why, but we need to delay the color start by
-    // some amount after the display area to make it work correctly
-    // for the DE2 board
+    // SPECIAL NOTES:
+    // Not sure why, but we need to delay the h_video_on by some amount
+    // after the display area to make the picture showing correctly for the *DE2 board*
     assign h_video_on = (h_counter >= START_DELAY) && (h_counter <= `H_DISPLAY+START_DELAY-1);
     assign v_video_on = v_counter <= `V_DISPLAY-1;
     assign video_on   = h_video_on & v_video_on;
-
-    assign vga_stream_start = vga_src_rgb[RGB_SIZE];
 
     always @(posedge pixel_clk) begin
         if (pixel_rst) begin
             state <= S_SYNC;
         end
         else begin
-            if (scan_end && vga_stream_start) begin
+            if (scan_end && vga_frame_start) begin
                 state <= S_DISP;
             end
             else if (h_disp_end && v_disp_end) begin
@@ -124,7 +123,7 @@ module vga_sync #(
         vga_src_rdy = 1'b0;
         case(state)
             S_SYNC: begin
-                vga_src_rdy = ~vga_stream_start; // pop the remaining frames out of the fifo
+                vga_src_rdy = ~vga_frame_start; // pop the remaining frames out of the fifo
             end
             S_DISP: begin
                 vga_src_rdy = video_on;

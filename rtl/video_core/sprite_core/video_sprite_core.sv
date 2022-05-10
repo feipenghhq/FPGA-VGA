@@ -6,31 +6,38 @@
  * ---------------------------------------------------------------
  * Sprite core
  *
- * Register Spec
- * - 0x0 ctrl
- *      - bit [0:0] bypass = 0
- * - 0x4 x_origin
- *      - bit [31:0] value = 0
- * - 0x8 y_origin
- *      - bit [31:0] value = 0
- * - 0x10 ~ sprite ram
- *      - sprite ram addr = avalon addr - 0x10
- *
- * ---------------------------------------------------------------
- * Reference: <fpga prototyping by vhdl examples: xilinx microblaze mcs soc>
+ * This module has a latency of 1
  * ---------------------------------------------------------------
  */
+
+ /* ---------------------------------------------------------------
+ * Register Spec
+ * ---------------------------------------------------------------
+ * - 0x0 ctrl                   // control register
+ *      - bit [0:0] bypass = 0  // by pass the current core
+ * ---------------------------------------------------------------
+ * - 0x4 x_origin               // x origin register
+ *      - bit [31:0] value = 0  // x origin value
+ * ---------------------------------------------------------------
+ * - 0x8 y_origin               // y origin register
+ *      - bit [31:0] value = 0  // y origin value
+ * ---------------------------------------------------------------
+ * - 0x10 sprite ram            // Write to the sprite ram
+ * // This is a continuous address space mapped to the sprite ram
+ * ---------------------------------------------------------------
+*/
 
 `include "vga.svh"
 
  module video_sprite_core #(
     parameter RGB_SIZE      = 12,
-    parameter SPRITE_HSIZE  = 32,   // 32x32 pixel sprite
-    parameter SPRITE_VSIZE  = 32,
-    parameter SPRITE_RAM_AW = 10,
-    parameter X_ORIGIN      = 0,
-    parameter Y_ORIGIN      = 0,
-    parameter MEM_FILE      = ""
+    parameter SPRITE_HSIZE  = 32,   // Horizontal size of the sprite.
+    parameter SPRITE_VSIZE  = 32,   // Vertical size of the sprite
+    parameter SPRITE_RAM_AW = 10,   // Sprite RAM address width
+    parameter KEY_COLOR     = 0,    // Chrome key color
+    parameter X_ORIGIN      = 0,    // The X ORIGIN of the sprite on reset
+    parameter Y_ORIGIN      = 0,    // The Y ORIGIN of the sprite on reset
+    parameter MEM_FILE      = ""    // Initial memory file for the sprite
 ) (
     input                       clk,
     input                       rst,
@@ -117,7 +124,7 @@
     assign sprite_ram_addr_tmp = avs_address[SPRITE_RAM_AW:0] - 'h10;
     assign sprite_ram_addr_w = sprite_ram_addr_tmp[SPRITE_RAM_AW-1:0];
 
-    assign snk_rgb = sprite_rgb;
+    assign snk_rgb = ctrl_bypass ? pipe_out_rgb : sprite_rgb;
 
     // --------------------------------
     // Module initialization

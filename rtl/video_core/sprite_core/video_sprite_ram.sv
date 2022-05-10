@@ -5,8 +5,8 @@
  * Date Created: 05/05/2022
  * ---------------------------------------------------------------
  * Sprite ram
- * ---------------------------------------------------------------
- * Reference: <fpga prototyping by vhdl examples: xilinx microblaze mcs soc>
+ *
+ * A 1R1W memory
  * ---------------------------------------------------------------
  */
 
@@ -31,9 +31,11 @@ module video_sprite_ram #(
     end
 
     generate
+        /* verilator lint_off WIDTH */
         if (MEM_FILE != "") begin
             initial $readmemh(MEM_FILE, ram);
         end
+        /* verilator lint_on WIDTH */
     endgenerate
 
 endmodule
