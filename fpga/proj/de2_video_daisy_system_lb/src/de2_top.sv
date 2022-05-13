@@ -275,8 +275,8 @@ module de2_top (
         .c1     (VGA_CLK)
     );
 
-    video_daisy_system
-    u_video_daisy_system (
+    video_daisy_system_lb
+    u_video_daisy_system_lb (
         .pixel_clk      (VGA_CLK),
         .pixel_rst      (pixel_rst),
         .sys_clk        (sys_clk),

@@ -12,7 +12,8 @@
  module vga_async_fifo #(
     parameter WIDTH  = 32,              // Data width
     parameter DEPTH  = 16,              // FIFO depth
-    parameter AWIDTH = $clog2(DEPTH)
+    parameter AWIDTH = $clog2(DEPTH),
+    parameter AFULL_THRES = 1
 ) (
     // Read side
     input               rst_rd,
@@ -25,7 +26,8 @@
     input               clk_wr,
     input [WIDTH-1:0]   din,
     input               write,
-    output              full
+    output              full,
+    output              afull
 );
 
     reg [WIDTH-1:0]     mem[2**AWIDTH-1:0];   // Only this style works in vivado.
@@ -103,6 +105,7 @@
 
     assign wrptr_minus_rdptr = wrptr_bin - rdptr_bin_clk_wr;
     assign full  = wrptr_minus_rdptr == DEPTH[AWIDTH:0];
+    assign afull = wrptr_minus_rdptr == (DEPTH - AFULL_THRES);
 
     assign wen = !full & write;
 
@@ -124,9 +127,9 @@
         end
     end
 
-    //=====================
+    // -----------------------------
     // RAM control logic
-    //=====================
+    // -----------------------------
 
     assign rd_addr = rdptr_bin[AWIDTH-1:0];
 

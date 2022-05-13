@@ -2,33 +2,44 @@
  * Copyright (c) 2022. Heqing Huang (feipenghhq@gmail.com)
  *
  * Author: Heqing Huang
- * Date Created: 04/29/2022
+ * Date Created: 05/01/2022
  * ---------------------------------------------------------------
- * VGA sync core
+ * VGA core with line buffer
  *
- * - Generate VGA hsync/vsync signal based on VGA timing
- * - Synchronize the pixel frame with the VGA timing
- * - Drive the R/G/B color read from upstram logic
+ * Contains the following components:
+ *  - vga_sync
+ *  - vga_line_buffer
+ * Data flow:
+ *  vga_line_buffer => vga_sync
+ *
+ * ---------------------------------------------------------------
+ * 05/12/2022:
+ *  - merged the vga_sync module with vga_sync_core and rename the
+ *    module to vga_core_line_buffer
  * ---------------------------------------------------------------
  */
 
 `include "vga.svh"
 
-module vga_sync #(
+module vga_core_line_buffer #(
     parameter RSIZE = 4,
     parameter GSIZE = 4,
     parameter BSIZE = 4,
-    parameter RGB_SIZE = 12,
-    parameter START_DELAY = 10
+    parameter RGB_SIZE    = 12,
+    parameter START_DELAY = 12
 ) (
     input                   pixel_clk,
     input                   pixel_rst,
 
-    input                   vga_frame_start,
-    input [RGB_SIZE-1:0]    vga_src_rgb,
-    input                   vga_src_vld,
-    output logic            vga_src_rdy,
+    input                   sys_clk,
+    input                   sys_rst,
 
+    // line buffer source
+    input [RGB_SIZE:0]      line_buffer_data,
+    input                   line_buffer_vld,
+    output                  line_buffer_rdy,
+
+    // vga interface
     output reg [RSIZE-1:0]  vga_r,
     output reg [GSIZE-1:0]  vga_g,
     output reg [BSIZE-1:0]  vga_b,
@@ -37,32 +48,35 @@ module vga_sync #(
     output reg              vga_vsync
 );
 
-    // --------------------------------
-    // Signal Declaration
-    // --------------------------------
+    // ------------------------------
+    // Sginal Declaration
+    // ------------------------------
 
-    localparam          S_SYNC = 0,
-                        S_DISP = 1;
-    reg                 state;
+    localparam            S_SYNC = 0,
+                          S_DISP = 1;
+    reg                   state;
 
-    reg [`H_SIZE-1:0]   h_counter;
-    reg [`V_SIZE-1:0]   v_counter;
+    logic                 vga_frame_start;
+    logic                 vga_src_rdy;
+    logic [RGB_SIZE:0]    vga_src_data;
+    logic [RGB_SIZE-1:0]  vga_src_rgb;
+    logic                 vga_src_vld;
 
-    logic               h_counter_fire;
-    logic               v_counter_fire;
+    reg [`H_SIZE-1:0]     h_counter;
+    reg [`V_SIZE-1:0]     v_counter;
 
-    logic               h_video_on;
-    logic               v_video_on;
-    logic               video_on;
-
-    logic               scan_end;
-    logic               h_disp_end;
-    logic               v_disp_end;
+    logic                 h_counter_fire;
+    logic                 v_counter_fire;
+    logic                 h_video_on;
+    logic                 v_video_on;
+    logic                 video_on;
+    logic                 scan_end;
+    logic                 h_disp_end;
+    logic                 v_disp_end;
 
     // --------------------------------
     // main logic
     // --------------------------------
-
 
     // horizontal and vertical counter
     assign h_counter_fire = h_counter == `H_COUNT-1;
@@ -94,6 +108,10 @@ module vga_sync #(
     end
 
     // displays synchronization logic
+
+    assign vga_src_rgb     = vga_src_data[RGB_SIZE-1:0];
+    assign vga_frame_start = vga_src_data[RGB_SIZE];
+
     assign scan_end   = h_counter_fire & v_counter_fire;
     assign h_disp_end = h_counter == `H_DISPLAY-1;
     assign v_disp_end = v_counter == `V_DISPLAY-1;
@@ -130,5 +148,28 @@ module vga_sync #(
             end
         endcase
     end
+
+    // --------------------------------
+    // Module initialization
+    // --------------------------------
+
+    vga_line_buffer
+    #(
+      .RGB_SIZE                         (RGB_SIZE))
+    u_vga_line_buffer
+    (
+     // Outputs
+     .src_rdy                           (line_buffer_rdy),
+     .snk_data                          (vga_src_data[RGB_SIZE:0]),
+     .snk_vld                           (vga_src_vld),
+     // Inputs
+     .src_rst                           (sys_rst),
+     .src_clk                           (sys_clk),
+     .src_data                          (line_buffer_data),
+     .src_vld                           (line_buffer_vld),
+     .snk_rst                           (pixel_rst),
+     .snk_clk                           (pixel_clk),
+     .snk_rdy                           (vga_src_rdy));
+
 
 endmodule

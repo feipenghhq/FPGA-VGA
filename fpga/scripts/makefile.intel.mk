@@ -54,7 +54,7 @@ $(QIP): $(QSYS_DIR)/$(QSYS).qsys
 	qsys-generate $(QSYS_DIR)/$(QSYS).qsys --search_path="$(QSYS_SEARCH)"  --family=$(FAMILY)  --part=$(PART) --synthesis=$(QSYS_SYN_LANG) --output-directory=$(OUT_DIR)/$(QSYS) --clear-output-directory
 
 $(SOF): $(QIP) $(VERILOG)
-	cd $(OUT_DIR) && quartus_sh --64bit -t $(SCRIPT_DIR)/build.tcl
+	cd $(OUT_DIR) && quartus_sh --64bit -t $(SCRIPT_DIR)/intel.build.tcl
 
 pgm: $(SOF)
 	quartus_pgm --mode JTAG -o "p;$(SOF)"

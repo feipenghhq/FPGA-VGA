@@ -4,7 +4,7 @@
  * Author: Heqing Huang
  * Date Created: 05/01/2022
  * ---------------------------------------------------------------
- * VGA daisy system
+ * VGA daisy system using vga_core_line_buffer
  *
  * This module contains a daisy chain of different video cores
  *
@@ -12,17 +12,17 @@
  */
 
 /*
-  _________      ______      _____________      _____________      __________      __________
- |  Frame  |    | bar  |    |   pikachu   |    |   pacman    |    | rgb2gray |    |          |
- | counter | -> | core | -> | sprite core | -> | sprite core | -> |   core   | -> | vga_sync | => To Display
- |_________|    |______|    |_____________|    |_____________|    |__________|    |__________|
+  _________      ______      _____________      _____________      __________      ______________________
+ |  Frame  |    | bar  |    |   pikachu   |    |   pacman    |    | rgb2gray |    |                      |
+ | counter | -> | core | -> | sprite core | -> | sprite core | -> |   core   | -> | vga_core_line_buffer | => To Display
+ |_________|    |______|    |_____________|    |_____________|    |__________|    |______________________|
 
 */
 
 
 `include "vga.svh"
 
-module video_daisy_system #(
+module video_daisy_system_lb #(
     parameter RSIZE     = 4,
     parameter GSIZE     = 4,
     parameter BSIZE     = 4,
@@ -303,14 +303,14 @@ module video_daisy_system #(
      .snk_rdy                           (line_buffer_rdy));       // Templated
 
 
-    vga_sync_core
+    vga_core_line_buffer
     #(
       .RSIZE                            (RSIZE),
       .GSIZE                            (GSIZE),
       .BSIZE                            (BSIZE),
       .RGB_SIZE                         (RGB_SIZE)
     )
-    u_vga_sync_core
+    u_vga_core_line_buffer
     (/*AUTOINST*/
      // Outputs
      .line_buffer_rdy                   (line_buffer_rdy),

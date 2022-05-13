@@ -39,42 +39,30 @@ module vga_line_buffer #(
     logic                   read;
     logic                   write;
 
-    /*AUTOREG*/
-
-    /*AUTOWIRE*/
-
     assign src_rdy = ~full;
     assign snk_vld = ~empty;
     assign write = src_vld & src_rdy;
     assign read = snk_rdy & snk_vld;
 
-    /* vga_async_fifo AUTO_TEMPLATE (
-        .clk_wr     (src_clk),
-        .rst_wr     (src_rst),
-        .din        (src_data),
-        .clk_rd     (snk_clk),
-        .rst_rd     (snk_rst),
-        .dout       (snk_data),
-    );
-    */
     vga_async_fifo
     #(
       // Parameters
       .WIDTH                            (WIDTH),
       .DEPTH                            (DEPTH))
     u_vga_async_fifo
-    (/*AUTOINST*/
+    (
      // Outputs
-     .dout                              (snk_data),              // Templated
+     .dout                              (snk_data),
      .empty                             (empty),
      .full                              (full),
+     .afull                             (),
      // Inputs
-     .rst_rd                            (snk_rst),               // Templated
-     .clk_rd                            (snk_clk),               // Templated
+     .rst_rd                            (snk_rst),
+     .clk_rd                            (snk_clk),
      .read                              (read),
-     .rst_wr                            (src_rst),               // Templated
-     .clk_wr                            (src_clk),               // Templated
-     .din                               (src_data),              // Templated
+     .rst_wr                            (src_rst),
+     .clk_wr                            (src_clk),
+     .din                               (src_data),
      .write                             (write));
 
 

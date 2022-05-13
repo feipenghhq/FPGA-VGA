@@ -13,8 +13,7 @@ VERILOG 	+= $(COMMON)/vga_dsync.sv
 VERILOG 	+= $(COMMON)/vga_async_fifo.sv
 
 VERILOG 	+= $(VGA_CORE)/vga_line_buffer.sv
-VERILOG 	+= $(VGA_CORE)/vga_sync_core.sv
-VERILOG 	+= $(VGA_CORE)/vga_sync.sv
+VERILOG 	+= $(VGA_CORE)/vga_core_line_buffer.sv
 
 VERILOG 	+= $(VIDEO_CORE)/dummy_core/video_dummy_core.sv
 VERILOG 	+= $(VIDEO_CORE)/bar_core/video_bar_core.sv
@@ -27,5 +26,5 @@ VERILOG 	+= $(VIDEO_CORE)/sprite_core/video_sprite_ram.sv
 VERILOG 	+= $(VIDEO_CORE)/sprite_core/video_sprite_animation_core.sv
 VERILOG 	+= $(VIDEO_CORE)/sprite_core/video_sprite_animation_gen.sv
 
-VERILOG 	+= $(VIDEO_SYSTEM)/video_daisy_system.sv
+VERILOG 	+= $(VIDEO_SYSTEM)/video_daisy_system_lb.sv
 VERILOG 	+= $(VIDEO_SYSTEM)/vidao_daisy_system_bypass_control.sv
