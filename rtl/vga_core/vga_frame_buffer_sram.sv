@@ -171,8 +171,8 @@ module vga_frame_buffer_sram #(
     // ideally we should have a cdc logic here for async_fifo_full but since
     // vga_start is quasi static so we should be good.
     always @(posedge pixel_clk) begin
-        if (pixel_rst)                          vga_start <= 1'b0;
-        else if (!vga_start && async_fifo_full) vga_start <= 1'b1;
+        if (pixel_rst) vga_start <= 1'b0;
+        else if (!vga_start && async_fifo_afull) vga_start <= 1'b1;
     end
 
     // ------------------------------
