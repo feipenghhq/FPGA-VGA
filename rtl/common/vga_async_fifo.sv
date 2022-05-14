@@ -36,19 +36,22 @@
     reg [WIDTH-1:0]     data_out;
     reg [AWIDTH:0]      rdptr_bin;
     reg [AWIDTH:0]      rdptr_gry;
-    reg  [AWIDTH:0]     wrptr_bin_clk_rd;
 
     logic               ren;
     logic [AWIDTH:0]    wrptr_gry_clk_rd;
+    logic [AWIDTH:0]    wrptr_bin_clk_rd;
+    logic [AWIDTH:0]    rdptr_bin_next;
     logic [AWIDTH-1:0]  rd_addr;
 
     // Write side
     reg [AWIDTH:0]      wrptr_bin;
     reg [AWIDTH:0]      wrptr_gry;
-    reg  [AWIDTH:0]     rdptr_bin_clk_wr;
+
 
     logic               wen;
     logic [AWIDTH:0]    rdptr_gry_clk_wr;
+    logic [AWIDTH:0]    rdptr_bin_clk_wr;
+    logic [AWIDTH:0]    wrptr_bin_next;
     logic [AWIDTH-1:0]  wr_addr;
     logic [AWIDTH:0]    wrptr_minus_rdptr;
 
@@ -61,8 +64,7 @@
     // CDC logic
     genvar i;
     generate
-        for (i = 0; i <= AWIDTH; i = i + 1)
-        begin: cdc_rd
+        for (i = 0; i <= AWIDTH; i = i + 1) begin: cdc_rd
             vga_dsync wrptr_gry_dsync(.D(wrptr_gry[i]), .Q(wrptr_gry_clk_rd[i]), .rst(rst_rd), .clk(clk_rd));
         end
     endgenerate
@@ -70,22 +72,20 @@
     // control
     assign ren = !empty & read;
     assign empty = (wrptr_bin_clk_rd - rdptr_bin) == 0;
+    /* verilator lint_off WIDTH */
+    assign rdptr_bin_next = rdptr_bin + ren;
+    /* verilator lint_on WIDTH */
+    assign wrptr_bin_clk_rd = grey2bin(wrptr_gry_clk_rd);
 
     // read pointer
-    always @(posedge clk_rd)
-    begin
-        if (rst_rd)
-        begin
+    always @(posedge clk_rd) begin
+        if (rst_rd) begin
             rdptr_bin <= 'b0;
             rdptr_gry <= 'b0;
-            wrptr_bin_clk_rd <= 'b0;
         end
-        else
-        begin
-            wrptr_bin_clk_rd <= grey2bin(wrptr_gry_clk_rd);
-            rdptr_gry <= bin2grey(rdptr_bin);
-            if (ren)
-                rdptr_bin <= rdptr_bin + 1'b1;
+        else begin
+            rdptr_gry <= bin2grey(rdptr_bin_next);
+            rdptr_bin <= rdptr_bin_next;
         end
     end
 
@@ -95,8 +95,7 @@
     // CDC logic
     genvar j;
     generate
-        for (j = 0; j <= AWIDTH; j = j + 1)
-        begin: cdc_wr
+        for (j = 0; j <= AWIDTH; j = j + 1) begin: cdc_wr
             vga_dsync wrptr_gry_dsync(.D(rdptr_gry[j]), .Q(rdptr_gry_clk_wr[j]), .rst(rst_wr), .clk(clk_wr));
         end
     endgenerate
@@ -105,25 +104,22 @@
 
     assign wrptr_minus_rdptr = wrptr_bin - rdptr_bin_clk_wr;
     assign full  = wrptr_minus_rdptr == DEPTH[AWIDTH:0];
-    assign afull = wrptr_minus_rdptr == (DEPTH - AFULL_THRES);
-
+    assign afull = wrptr_minus_rdptr >= (DEPTH - AFULL_THRES);
     assign wen = !full & write;
+    /* verilator lint_off WIDTH */
+    assign wrptr_bin_next = wrptr_bin + wen;
+    /* verilator lint_on WIDTH */
+    assign rdptr_bin_clk_wr = grey2bin(rdptr_gry_clk_wr);
 
     // write pointer
-    always @(posedge clk_wr)
-    begin
-        if (rst_wr)
-        begin
+    always @(posedge clk_wr) begin
+        if (rst_wr) begin
             wrptr_bin <= 'b0;
             wrptr_gry <= 'b0;
-            rdptr_bin_clk_wr <= 'b0;
         end
-        else
-        begin
-            wrptr_gry <= bin2grey(wrptr_bin);
-            rdptr_bin_clk_wr <= grey2bin(rdptr_gry_clk_wr);
-            if (!full && write)
-                wrptr_bin <= wrptr_bin + 1'b1;
+        else begin
+            wrptr_gry <= bin2grey(wrptr_bin_next);
+            wrptr_bin <= wrptr_bin_next;
         end
     end
 
