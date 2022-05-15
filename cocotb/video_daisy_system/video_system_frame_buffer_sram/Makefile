@@ -10,10 +10,10 @@ PWD 	 = $(shell pwd)
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_daisy_system_fbs.inc
+include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_frame_buffer_sram.inc
 VERILOG_SOURCES += $(VERILOG)
 VERILOG_SOURCES += tb.sv
-TOPLEVEL = video_daisy_system_fbs_tb
+TOPLEVEL = video_system_frame_buffer_sram_tb
 
 MODULE 	 = test
 

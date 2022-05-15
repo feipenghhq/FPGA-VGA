@@ -10,7 +10,7 @@ PWD		 = $(shell pwd)
 PROJECT  = video_daisy_system
 TOP		 = de2_top
 
-include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_daisy_system_fbs.inc
+include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_frame_buffer_sram.inc
 VERILOG  	+= $(PWD)/src/altpllvga.v
 VERILOG  	+= $(PWD)/src/de2_top.sv
 

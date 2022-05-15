@@ -239,16 +239,15 @@ module de2_top (
 
     /////////////////////////////////////////////
 
-    logic pixel_clk;
-    logic pixel_rst;
-    logic sys_clk;
-    logic sys_rst;
-    logic avs_write;
+    logic           pixel_clk;
+    logic           pixel_rst;
+    logic           sys_clk;
+    logic           sys_rst;
+    logic           avs_write;
 
-
-    logic [3:0] vga_r;
-    logic [3:0] vga_g;
-    logic [3:0] vga_b;
+    logic [3:0]     vga_r;
+    logic [3:0]     vga_g;
+    logic [3:0]     vga_b;
 
     logic           avs_video_bar_core_address;
     logic           avs_video_bar_core_write;
@@ -258,9 +257,6 @@ module de2_top (
     logic           avs_video_rgb2gray_core_write;
     logic  [31:0]   avs_video_rgb2gray_core_writedata;
 
-	logic [15:0]    sram_dq_read;
-	logic [15:0]    sram_dq_write;
-	logic           sram_dq_en;
 
     assign VGA_R = {vga_r, {6{vga_r[3]}} };
     assign VGA_G = {vga_g, {6{vga_g[3]}} };
@@ -272,9 +268,6 @@ module de2_top (
     assign sys_rst = ~KEY[3];
     assign pixel_rst = ~KEY[3];
 
-    assign sram_dq_read = SRAM_DQ;
-    assign SRAM_DQ = sram_dq_en ? sram_dq_write : 16'bz;
-
     altpllvga u_altpllvga
     (
         .inclk0 (CLOCK_50),
@@ -282,18 +275,17 @@ module de2_top (
         .c1     (VGA_CLK)
     );
 
-    video_daisy_system_fbs
-    u_video_daisy_system_fbs (
-        .pixel_clk      (VGA_CLK),
-        .pixel_rst      (pixel_rst),
-        .sys_clk        (sys_clk),
-        .sys_rst        (sys_rst),
-        .vga_r          (vga_r),
-        .vga_g          (vga_g),
-        .vga_b          (vga_b),
-        .vga_hsync      (VGA_HS),
-        .vga_vsync      (VGA_VS),
-
+    video_system_frame_buffer_sram
+    u_video_system_frame_buffer_sram (
+        .pixel_clk                          (VGA_CLK),
+        .pixel_rst                          (pixel_rst),
+        .sys_clk                            (sys_clk),
+        .sys_rst                            (sys_rst),
+        .vga_r                              (vga_r),
+        .vga_g                              (vga_g),
+        .vga_b                              (vga_b),
+        .vga_hsync                          (VGA_HS),
+        .vga_vsync                          (VGA_VS),
         .avs_video_bar_core_address         (0),
         .avs_video_bar_core_write           (avs_write),
         .avs_video_bar_core_writedata       (SW[0]),
@@ -306,15 +298,12 @@ module de2_top (
         .avs_video_rgb2gray_core_address    (0),
         .avs_video_rgb2gray_core_write      (avs_write),
         .avs_video_rgb2gray_core_writedata  (SW[3]),
-
-        .sram_addr          (SRAM_ADDR),
-        .sram_dq_read       (sram_dq_read),
-        .sram_dq_write      (sram_dq_write),
-        .sram_dq_en         (sram_dq_en),
-        .sram_ce_n          (SRAM_CE_N),
-        .sram_oe_n          (SRAM_OE_N),
-        .sram_we_n          (SRAM_WE_N),
-        .sram_be_n          ({SRAM_UB_N, SRAM_LB_N})
+        .sram_addr                          (SRAM_ADDR),
+        .sram_dq                            (SRAM_DQ),
+        .sram_ce_n                          (SRAM_CE_N),
+        .sram_oe_n                          (SRAM_OE_N),
+        .sram_we_n                          (SRAM_WE_N),
+        .sram_be_n                          ({SRAM_UB_N, SRAM_LB_N})
 
     );
 
