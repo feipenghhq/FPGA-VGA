@@ -8,12 +8,13 @@ VIDEO_SYSTEM = $(GIT_ROOT)/rtl/video_daisy_system
 VERILOG 	+= $(COMMON)/video_core_pipeline.sv
 VERILOG 	+= $(COMMON)/video_data_pipeline.sv
 VERILOG 	+= $(COMMON)/video_core_stages.sv
-VERILOG 	+= $(COMMON)/vga_frame_counter.sv
+
 VERILOG 	+= $(COMMON)/vga_dsync.sv
 VERILOG 	+= $(COMMON)/vga_async_fifo.sv
 
 VERILOG 	+= $(VGA_CORE)/vga_line_buffer.sv
 VERILOG 	+= $(VGA_CORE)/vga_core_line_buffer.sv
+VERILOG 	+= $(VGA_CORE)/vga_frame_counter.sv
 
 VERILOG 	+= $(VIDEO_CORE)/dummy_core/video_dummy_core.sv
 VERILOG 	+= $(VIDEO_CORE)/bar_core/video_bar_core.sv
@@ -26,5 +27,6 @@ VERILOG 	+= $(VIDEO_CORE)/sprite_core/video_sprite_ram.sv
 VERILOG 	+= $(VIDEO_CORE)/sprite_core/video_sprite_animation_core.sv
 VERILOG 	+= $(VIDEO_CORE)/sprite_core/video_sprite_animation_gen.sv
 
-VERILOG 	+= $(VIDEO_SYSTEM)/video_daisy_system_lb.sv
+VERILOG 	+= $(VIDEO_SYSTEM)/video_daisy_core.sv
+VERILOG 	+= $(VIDEO_SYSTEM)/video_system_line_buffer.sv
 VERILOG 	+= $(VIDEO_SYSTEM)/vidao_daisy_system_bypass_control.sv

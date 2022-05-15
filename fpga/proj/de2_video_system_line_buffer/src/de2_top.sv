@@ -275,17 +275,17 @@ module de2_top (
         .c1     (VGA_CLK)
     );
 
-    video_daisy_system_lb
-    u_video_daisy_system_lb (
-        .pixel_clk      (VGA_CLK),
-        .pixel_rst      (pixel_rst),
-        .sys_clk        (sys_clk),
-        .sys_rst        (sys_rst),
-        .vga_r          (vga_r),
-        .vga_g          (vga_g),
-        .vga_b          (vga_b),
-        .vga_hsync      (VGA_HS),
-        .vga_vsync      (VGA_VS),
+    video_system_line_buffer
+    u_video_system_line_buffer (
+        .pixel_clk                          (VGA_CLK),
+        .pixel_rst                          (pixel_rst),
+        .sys_clk                            (sys_clk),
+        .sys_rst                            (sys_rst),
+        .vga_r                              (vga_r),
+        .vga_g                              (vga_g),
+        .vga_b                              (vga_b),
+        .vga_hsync                          (VGA_HS),
+        .vga_vsync                          (VGA_VS),
         .avs_video_bar_core_address         (0),
         .avs_video_bar_core_write           (avs_write),
         .avs_video_bar_core_writedata       (SW[0]),

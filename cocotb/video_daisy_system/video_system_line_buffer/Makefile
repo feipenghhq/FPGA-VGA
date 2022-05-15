@@ -3,8 +3,6 @@
 # ==================================================================================
 
 
-
-
 GIT_ROOT = $(shell git rev-parse --show-toplevel)
 PWD 	 = $(shell pwd)
 
@@ -12,14 +10,16 @@ PWD 	 = $(shell pwd)
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-include $(GIT_ROOT)/rtl/video_daisy_system/makefile.filelist.inc
+include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_line_buffer.inc
 VERILOG_SOURCES += $(VERILOG)
-TOPLEVEL = video_daisy_system
+TOPLEVEL = video_system_line_buffer
 
 MODULE 	 = test
 
 DUMP ?= 0
 COVR ?= 0
+LINT ?= 0
+
 
 ifeq ($(SIM),verilator)
 EXTRA_ARGS += -I$(GIT_ROOT)/rtl/common
@@ -28,6 +28,9 @@ ifeq ($(COVR), 1)
 endif
 ifeq ($(DUMP), 1)
 	EXTRA_ARGS += --trace-fst --trace-structs
+endif
+ifeq ($(LINT), 1)
+	EXTRA_ARGS += --lint-only
 endif
 endif
 

@@ -10,12 +10,11 @@ PWD		 = $(shell pwd)
 PROJECT  = video_daisy_system
 TOP		 = de2_top
 
-include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_daisy_system_lb.inc
-VERILOG  	+= $(GIT_ROOT)/fpga/common/rtl/altpllvga.v
+include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_line_buffer.inc
+VERILOG  	+= $(PWD)/src/altpllvga.v
 VERILOG  	+= $(PWD)/src/de2_top.sv
 
 SEARCH   	+= $(GIT_ROOT)/rtl/common
-
 SDC	     	+= $(PWD)/src/de2_top.sdc
 PIN      	+= $(PWD)/src/DE2_pin_assignment.tcl
 

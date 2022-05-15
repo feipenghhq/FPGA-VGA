@@ -4,25 +4,25 @@
  * Author: Heqing Huang
  * Date Created: 05/01/2022
  * ---------------------------------------------------------------
- * VGA daisy system using vga_core_line_buffer
- *
+ * Version 05/15/2022:
+ * Redeisgned the module: move the vga module out of the module
+ * ---------------------------------------------------------------
  * This module contains a daisy chain of different video cores
- *
  * ---------------------------------------------------------------
  */
 
 /*
-  _________      ______      _____________      _____________      __________      ______________________
- |  Frame  |    | bar  |    |   pikachu   |    |   pacman    |    | rgb2gray |    |                      |
- | counter | -> | core | -> | sprite core | -> | sprite core | -> |   core   | -> | vga_core_line_buffer | => To Display
- |_________|    |______|    |_____________|    |_____________|    |__________|    |______________________|
+  _________      ______      _____________      _____________      __________
+ |  Frame  |    | bar  |    |   pikachu   |    |   pacman    |    | rgb2gray |
+ | counter | -> | core | -> | sprite core | -> | sprite core | -> |   core   | -> Downstream
+ |_________|    |______|    |_____________|    |_____________|    |__________|
 
 */
 
 
 `include "vga.svh"
 
-module video_daisy_system_lb #(
+module video_daisy_core #(
     parameter RSIZE     = 4,
     parameter GSIZE     = 4,
     parameter BSIZE     = 4,
@@ -35,15 +35,13 @@ module video_daisy_system_lb #(
     input                   sys_clk,
     input                   sys_rst,
 
-    // vga interface
-    output  [RSIZE-1:0]     vga_r,
-    output  [GSIZE-1:0]     vga_g,
-    output  [BSIZE-1:0]     vga_b,
+    // video daisy core output
+    output vga_fc_t         daisy_system_fc,
+    output [RGB_SIZE-1:0]   daisy_system_rgb,
+    output                  daisy_system_vld,
+    input                   daisy_system_rdy,
 
-    output                  vga_hsync,
-    output                  vga_vsync,
-
-    // video bar core avalon insterface
+    // avalon interface for the cores
     input                   avs_video_bar_core_address,
     input                   avs_video_bar_core_write,
     input [31:0]            avs_video_bar_core_writedata,
@@ -67,12 +65,10 @@ module video_daisy_system_lb #(
 
     /*AUTOREG*/
 
-    /*AUTOREGINPUT*/
-
     /*AUTOWIRE*/
 
     localparam PIPELINE = 1;
-    localparam SPRITE_HSIZE  = 32;   // 32x32 pixel sprite
+    localparam SPRITE_HSIZE  = 32;
     localparam SPRITE_VSIZE  = 32;
     localparam SPRITE_RAM_AW = 10;
 
@@ -102,12 +98,6 @@ module video_daisy_system_lb #(
     logic  [RGB_SIZE-1:0]   rgb2gray_core_src_rgb;
     logic                   rgb2gray_core_src_vld;
 
-    vga_fc_t                line_buffer_fc;
-    logic [RGB_SIZE-1:0]    line_buffer_rgb;
-    logic [RGB_SIZE:0]      line_buffer_data;
-    logic                   line_buffer_vld;
-    logic                   line_buffer_rdy;
-
     // --------------------------------
     // Main logic
     // --------------------------------
@@ -117,11 +107,7 @@ module video_daisy_system_lb #(
     assign bar_core_src_fc.hc = fc_hcount;
     assign bar_core_src_fc.vc = fc_vcount;
     assign bar_core_src_fc.frame_start = frame_start;
-
     assign bar_core_src_vld = frame_display;
-
-    assign line_buffer_data[RGB_SIZE] = line_buffer_fc.frame_start;
-    assign line_buffer_data[RGB_SIZE-1:0] = line_buffer_rgb;
 
     // --------------------------------
     // Module Declaration
@@ -164,7 +150,7 @@ module video_daisy_system_lb #(
       .GSIZE                            (GSIZE),
       .BSIZE                            (BSIZE),
       .RGB_SIZE                         (RGB_SIZE),
-      .PIPELINE                         (1))
+      .PIPELINE                         (PIPELINE))
     u_bar_core
     (/*AUTOINST*/
      // Interfaces
@@ -273,7 +259,7 @@ module video_daisy_system_lb #(
      .rst           (sys_rst),
      .avs_\(.*\)    (avs_video_rgb2gray_core_\1),
      .src_\(.*\)    (rgb2gray_core_src_\1),
-     .snk_\(.*\)    (line_buffer_\1),
+     .snk_\(.*\)    (daisy_system_\1),
     )
     */
     video_rgb2gray_core
@@ -287,11 +273,11 @@ module video_daisy_system_lb #(
     (/*AUTOINST*/
      // Interfaces
      .src_fc                            (rgb2gray_core_src_fc),  // Templated
-     .snk_fc                            (line_buffer_fc),        // Templated
+     .snk_fc                            (daisy_system_fc),       // Templated
      // Outputs
      .src_rdy                           (rgb2gray_core_src_rdy), // Templated
-     .snk_vld                           (line_buffer_vld),       // Templated
-     .snk_rgb                           (line_buffer_rgb),       // Templated
+     .snk_vld                           (daisy_system_vld),      // Templated
+     .snk_rgb                           (daisy_system_rgb),      // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
@@ -300,32 +286,7 @@ module video_daisy_system_lb #(
      .avs_writedata                     (avs_video_rgb2gray_core_writedata), // Templated
      .src_vld                           (rgb2gray_core_src_vld), // Templated
      .src_rgb                           (rgb2gray_core_src_rgb), // Templated
-     .snk_rdy                           (line_buffer_rdy));       // Templated
-
-
-    vga_core_line_buffer
-    #(
-      .RSIZE                            (RSIZE),
-      .GSIZE                            (GSIZE),
-      .BSIZE                            (BSIZE),
-      .RGB_SIZE                         (RGB_SIZE)
-    )
-    u_vga_core_line_buffer
-    (/*AUTOINST*/
-     // Outputs
-     .line_buffer_rdy                   (line_buffer_rdy),
-     .vga_r                             (vga_r[RSIZE-1:0]),
-     .vga_g                             (vga_g[GSIZE-1:0]),
-     .vga_b                             (vga_b[BSIZE-1:0]),
-     .vga_hsync                         (vga_hsync),
-     .vga_vsync                         (vga_vsync),
-     // Inputs
-     .pixel_clk                         (pixel_clk),
-     .pixel_rst                         (pixel_rst),
-     .sys_clk                           (sys_clk),
-     .sys_rst                           (sys_rst),
-     .line_buffer_data                  (line_buffer_data[RGB_SIZE:0]),
-     .line_buffer_vld                   (line_buffer_vld));
+     .snk_rdy                           (daisy_system_rdy));      // Templated
 
 endmodule
 
