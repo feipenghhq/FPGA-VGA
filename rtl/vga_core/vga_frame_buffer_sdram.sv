@@ -22,16 +22,16 @@
 module vga_frame_buffer_sdram #(
 
     // Avalon Bus Parameter
-    parameter AVS_DW        = 16,     // Avalon data width
-    parameter AVS_AW        = 23,     // Avalon address width
+    parameter AVS_DW        = 16,       // Avalon data width
+    parameter AVS_AW        = 23,       // Avalon address width
 
     // SDRAM Architecture
-    parameter SDRAM_DATA    = 16,      // SDRAM data width
-    parameter SDRAM_BANK    = 4,       // SDRAM bank number
-    parameter SDRAM_ROW     = 12,      // SDRAM row number
-    parameter SDRAM_COL     = 8,       // SDRAM column number
-    parameter SDRAM_BA      = 2,       // SDRAM BA width
-    parameter SDRAM_BL      = 1,       // SDRAM burst length
+    parameter SDRAM_DATA    = 16,       // SDRAM data width
+    parameter SDRAM_BANK    = 4,        // SDRAM bank number
+    parameter SDRAM_ROW     = 12,       // SDRAM row number
+    parameter SDRAM_COL     = 8,        // SDRAM column number
+    parameter SDRAM_BA      = 2,        // SDRAM BA width
+    parameter SDRAM_BL      = 1,        // SDRAM burst length
 
     // SDRAM Timing
     parameter CLK_PERIOD    = 10,       // Clock period in ns
@@ -47,7 +47,7 @@ module vga_frame_buffer_sdram #(
     parameter tREF          = 64,       // Refresh period (ms)
 
     parameter RGB_SIZE      = 12,
-    parameter BUFFER_SIZE   = 8
+    parameter BUFFER_SIZE   = 32
 )(
     input                       sys_clk,
     input                       sys_rst,
@@ -92,7 +92,7 @@ module vga_frame_buffer_sdram #(
     // internal counter for sdram access
     reg [`H_SIZE-1:0]       h_counter;
     reg [`V_SIZE-1:0]       v_counter;
-    reg                     pending_vga_sdram_read;
+    reg                     vga_sdram_read_pending;
 
     logic                   h_counter_fire;
     logic                   v_counter_fire;
@@ -135,9 +135,9 @@ module vga_frame_buffer_sdram #(
     assign vga_sdram_address = h_counter + (v_counter << 9) + (v_counter << 7);
     assign src_sdram_address = src_x + (src_y << 9) + (src_y << 7);
     /* verilator lint_on WIDTH */
-    assign vga_sdram_read = ~async_fifo_afull & ~pending_vga_sdram_read & ~avs_waitrequest;
+    assign vga_sdram_read = ~async_fifo_afull & ~vga_sdram_read_pending & ~avs_waitrequest;
 
-    assign async_fifo_write = pending_vga_sdram_read & src_readdatavalid;
+    assign async_fifo_write = vga_sdram_read_pending & src_readdatavalid;
     assign async_fifo_din = sdram_dq;
 
     assign async_fifo_read = vga_read;
@@ -147,15 +147,15 @@ module vga_frame_buffer_sdram #(
         if (sys_rst) begin
             h_counter <= '0;
             v_counter <= '0;
-            pending_vga_sdram_read <= 'b0;
+            vga_sdram_read_pending <= 'b0;
         end
         else begin
             // FIXME this can be optimized since the sdram can take few outstanding read
             if (vga_sdram_read) begin
-                pending_vga_sdram_read <= 1'b1;
+                vga_sdram_read_pending <= 1'b1;
             end
             else if (src_readdatavalid) begin
-                pending_vga_sdram_read <= 1'b0;
+                vga_sdram_read_pending <= 1'b0;
             end
 
             if (vga_sdram_read) begin
@@ -171,7 +171,10 @@ module vga_frame_buffer_sdram #(
 
     // arbitration between the sdram access
 
-    assign vga_sdram_grant = vga_sdram_read;
+    // if the read cycle for vga sdram is not completed yet, we should hold
+    // the access for the vga port
+    // TODO: This can be improved by increasing the prefetch FIFO size
+    assign vga_sdram_grant = vga_sdram_read | vga_sdram_read_pending;
 
     assign src_rdy = ~vga_sdram_grant & ~avs_waitrequest;
     assign src_readdata = avs_readdata;
@@ -202,7 +205,7 @@ module vga_frame_buffer_sdram #(
       .WIDTH        (SDRAM_DATA),
       .DEPTH        (BUFFER_SIZE),
       .AFULL_THRES  (1))
-    u_vga_async_fifo
+    u_vga_prefetch_fifo
     (
      // Outputs
      .dout                              (async_fifo_dout),
