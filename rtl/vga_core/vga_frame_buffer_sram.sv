@@ -21,7 +21,7 @@
 
 module vga_frame_buffer_sram #(
     // avalon bus parameters
-    parameter AVN_AW        = 19,   // avalon address width
+    parameter AVN_AW        = 18,   // avalon address width
     parameter AVN_DW        = 16,   // avalon data width
     // frame buffer parameters
     parameter RGB_SIZE      = 12,
@@ -41,8 +41,8 @@ module vga_frame_buffer_sram #(
     // source avalon interface
     input                   src_avn_read,
     input                   src_avn_write,
-    input [AVN_AW-1:0]      src_avn_address,
-    input [AVN_DW-1:0]      src_avn_writedata,
+    input  [AVN_AW-1:0]     src_avn_address,
+    input  [AVN_DW-1:0]     src_avn_writedata,
     output [AVN_DW-1:0]     src_avn_readdata,
     output                  src_avn_waitrequest,
 
@@ -90,10 +90,8 @@ module vga_frame_buffer_sram #(
 
     // ---- VGA side read logic -----
 
-    /* verilator lint_off WIDTH */
-    //assign vga_sram_avn_address = h_counter + v_counter * `H_DISPLAY; // let the synthesis figure out * operation
-    assign vga_sram_avn_address = h_counter + (v_counter << 9) + (v_counter << 7);
-    /* verilator lint_on WIDTH */
+    // let the synthesis figure out * operation
+    assign vga_sram_avn_address = ({{(AVN_AW-`H_SIZE){1'b0}}, h_counter} + v_counter * `H_DISPLAY) ;
     assign vga_sram_avn_read = ~vga_prefetch_buffer_afull;
 
     assign vga_prefetch_buffer_write = vga_sram_avn_read_s1; // the sram has a read latency of 1

@@ -5,21 +5,24 @@
  * Date Created: 04/19/2022
  * ---------------------------------------------------------------
  * General SRAM controller with avalon inteface
+ *
+ * Note: The address of avalon MM interface is "WORD" address
+ *       instead of "BYTE" address
  * ---------------------------------------------------------------
  */
 
 module avalon_sram_controller #(
-    parameter   SRAM_AW = 18,   // SRAM address width
-    parameter   SRAM_DW = 16,   // SRAM data width
-    parameter   AVN_AW = 19,    // Input bus address
-    parameter   AVN_DW = 16     // Input bus data width
+    parameter SRAM_AW = 18,   // SRAM address width
+    parameter SRAM_DW = 16,   // SRAM data width
+    parameter AVN_AW = 18,    // Input bus address
+    parameter AVN_DW = 16     // Input bus data width
 ) (
     input                   clk,
     input                   reset,
     // Avalon interface bus
     input                   avn_read,
     input                   avn_write,
-    input  [AVN_AW-1:0]     avn_address,
+    input  [AVN_AW-1:0]     avn_address,    // NOTE: the address is the word address instead of byte address
     input  [AVN_DW-1:0]     avn_writedata,
     input  [AVN_DW/8-1:0]   avn_byteenable,
     output [AVN_DW-1:0]     avn_readdata,
@@ -31,8 +34,6 @@ module avalon_sram_controller #(
     output [SRAM_AW-1:0]    sram_addr,
     inout [SRAM_DW-1:0]     sram_dq
 );
-
-    localparam BYTE_FIELD_WIDTH = $clog2(AVN_DW/8);
 
     // --------------------------------------------
     //  Signal Declaration
@@ -72,7 +73,7 @@ module avalon_sram_controller #(
     end
 
     // drive the sram interface
-    assign sram_addr = avn_address_s0[AVN_AW-1:BYTE_FIELD_WIDTH];   // the sram address is the word address instead of the byte address
+    assign sram_addr = avn_address_s0;
     assign sram_ce_n = ~(avn_read_s0 | avn_write_s0);
     assign sram_oe_n = ~avn_read_s0;
     assign sram_we_n = ~avn_write_s0;

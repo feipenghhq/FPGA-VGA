@@ -60,8 +60,9 @@ module video_system_frame_buffer_sram #(
     inout  [SRAM_DW-1:0]    sram_dq
 );
 
-    localparam AVN_AW    = 19;
+    localparam AVN_AW    = 18;
     localparam AVN_DW    = 16;
+    localparam BYTE_FIELD_WIDTH = $clog2(AVN_DW/8);
 
     // --------------------------------
     // Signal declarations
@@ -94,9 +95,8 @@ module video_system_frame_buffer_sram #(
     // --------------------------------
 
     assign daisy_system_rdy = ~src_avn_waitrequest;
-    /* verilator lint_off WIDTH */
-    assign src_avn_address = daisy_system_fc.hc + daisy_system_fc.vc * `H_DISPLAY;  // let synthesis tool to figure out the * operation
-    /* verilator lint_on WIDTH */
+    assign src_avn_address = ({{(AVN_AW-`H_SIZE){1'b0}},daisy_system_fc.hc} + (daisy_system_fc.vc * `H_DISPLAY));
+
 
     always @* begin
         src_avn_writedata = 0;

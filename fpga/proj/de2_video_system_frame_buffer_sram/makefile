@@ -14,6 +14,8 @@ include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_frame_buffer_sr
 VERILOG  	+= $(PWD)/src/altpllvga.v
 VERILOG  	+= $(PWD)/src/de2_top.sv
 
+DEFINE		+= VGA_640x400
+
 SEARCH   	+= $(GIT_ROOT)/rtl/common
 
 SDC	     	+= $(PWD)/src/de2_top.sdc

@@ -17,6 +17,7 @@ TOP			?=
 VERILOG 	?=
 SDC 		?=
 PIN			?=
+DEFINE		?=
 
 
 export QUARTUS_PART 	= $(PART)
@@ -28,6 +29,7 @@ export QUARTUS_SEARCH   = $(SEARCH)
 export QUARTUS_SDC		= $(SDC)
 export QUARTUS_QIP		= $(QIP)
 export QUARTUS_PIN		= $(PIN)
+export QUARTUS_DEFINE	= $(DEFINE)
 
 
 SOF = $(OUT_DIR)/$(PROJECT).sof

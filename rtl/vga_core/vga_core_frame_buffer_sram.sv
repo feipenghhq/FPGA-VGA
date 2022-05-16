@@ -12,7 +12,7 @@
 `include "vga.svh"
 
 module vga_core_frame_buffer_sram #(
-    parameter AVN_AW    = 19,
+    parameter AVN_AW    = 18,
     parameter AVN_DW    = 16,
     parameter RSIZE     = 4,
     parameter GSIZE     = 4,
