@@ -60,8 +60,8 @@ module video_system_frame_buffer_sram #(
     inout  [SRAM_DW-1:0]    sram_dq
 );
 
-    localparam AVN_AW    = 18;
-    localparam AVN_DW    = 16;
+    localparam AVN_AW = 18;
+    localparam AVN_DW = 16;
     localparam BYTE_FIELD_WIDTH = $clog2(AVN_DW/8);
 
     // --------------------------------

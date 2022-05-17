@@ -25,7 +25,7 @@ module vga_frame_buffer_sram #(
     parameter AVN_DW        = 16,   // avalon data width
     // frame buffer parameters
     parameter RGB_SIZE      = 12,
-    parameter PF_BUF_SIZE   = 8     // prefetch bufer size
+    parameter PF_BUF_SIZE   = 16     // prefetch bufer size
 )(
     input                   sys_clk,
     input                   sys_rst,
@@ -76,7 +76,6 @@ module vga_frame_buffer_sram #(
     reg                 vga_sram_avn_read_s1;
     logic               vga_sram_avn_read;
     logic [AVN_AW-1:0]  vga_sram_avn_address;
-
     logic               vga_sram_avn_grant;
 
     // ------------------------------
