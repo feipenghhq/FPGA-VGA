@@ -36,3 +36,6 @@ quartus
 # software
 app
 bsp
+
+# c
+*.out
