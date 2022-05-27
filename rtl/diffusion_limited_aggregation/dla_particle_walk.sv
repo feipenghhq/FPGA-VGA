@@ -21,6 +21,7 @@ module dla_particle_walk #(
     input [$clog2(VSIZE)-1:0]   walk_init_y,
     input                       walk_start,
     output logic                walk_done,
+    output logic                walk_valid,
 
     output [AVN_AW-1:0]         vram_avn_address,
     output logic                vram_avn_write,
@@ -53,14 +54,17 @@ module dla_particle_walk #(
 
     reg [$clog2(HSIZE)-1:0]     cur_x;
     reg [$clog2(VSIZE)-1:0]     cur_y;
-    reg                         walk_valid;
+
 
     logic                       move;
     logic [$clog2(HSIZE)-1:0]   cur_x_next;
     logic [$clog2(VSIZE)-1:0]   cur_y_next;
-
-    logic [LSFR_WIDTH-1:0]      lsfr_x;
-    logic [LSFR_WIDTH-1:0]      lsfr_y;
+    logic [$clog2(HSIZE)-1:0]   cur_x_minus_one;
+    logic [$clog2(HSIZE)-1:0]   cur_x_plus_one;
+    logic [$clog2(VSIZE)-1:0]   cur_y_minus_one;
+    logic [$clog2(VSIZE)-1:0]   cur_y_plus_one;
+    logic [LSFR_WIDTH-1:0]      lsfr_random;
+    logic [2:0]                 direction;
 
     // --------------------------------
     // Main logic
@@ -74,6 +78,7 @@ module dla_particle_walk #(
 
     always @* begin
         walk_done = 0;
+        walk_valid = 0;
         check_start = 0;
         move = 0;
         vram_avn_write = 0;
@@ -88,16 +93,30 @@ module dla_particle_walk #(
                 state_next[S_CHECK_WAIT] = 1;
             end
             state[S_CHECK_WAIT]: begin
-                walk_done = check_done & (hit_neighbor | hit_neighbor);
-                if (walk_done)  state_next[S_WRITE] = 1;
-                else            state_next[S_MOVE] = 1;
+                // wait till the check completes
+                if (check_done) begin
+                    // if we hit the neighbor or hit a boundary, then we are done walking otherwise continue moving
+                    // if we hit the boundary, discard the particle
+                    if (hit_boundary) begin
+                        walk_done = 1;
+                                state_next[S_IDLE] = 1;
+                    end
+                    // if we hit the neighbor, write the particle to the screen
+                    else if (hit_neighbor)
+                                state_next[S_WRITE] = 1;
+                    else
+                                state_next[S_MOVE] = 1;
+                end
+                else            state_next[S_CHECK_WAIT] = 1;
             end
             state[S_MOVE]: begin
                 move = 1;
                 state_next[S_CHECK] = 1;
             end
             state[S_WRITE]: begin
-                vram_avn_write = walk_valid;
+                vram_avn_write = 1;
+                walk_done = ~vram_avn_waitrequest;
+                walk_valid = ~vram_avn_waitrequest;
                 if (!vram_avn_waitrequest)
                                 state_next[S_IDLE] = 1;
                 else            state_next[S_WRITE] = 1;
@@ -106,18 +125,54 @@ module dla_particle_walk #(
     end
 
 
+    assign cur_x_minus_one = cur_x - 1;
+    assign cur_x_plus_one = cur_x + 1;
+
+    assign cur_y_minus_one = cur_y - 1;
+    assign cur_y_plus_one = cur_y + 1;
+
+    assign direction = lsfr_random[2:0];
+
+    /*
+        The particale can move to 8 direction
+        Here is the direction and the lsfr_random[2:0] value:
+        0  1  2
+        3     4
+        5  6  7
+    */
+
     always @* begin
         cur_x_next = cur_x;
         cur_y_next = cur_y;
-        case(1)
-            lsfr_x[0]: cur_x_next = cur_x - 1;
-            lsfr_x[1]: cur_x_next = cur_x;
-            lsfr_x[2]: cur_x_next = cur_x + 1;
-        endcase
-        case(1)
-            lsfr_y[0]: cur_y_next = cur_y - 1;
-            lsfr_y[1]: cur_y_next = cur_y;
-            lsfr_y[2]: cur_y_next = cur_y + 1;
+        case(direction)
+            0: begin
+                cur_x_next = cur_x_minus_one;
+                cur_y_next = cur_y_minus_one;
+            end
+            1: begin
+                cur_y_next = cur_y_minus_one;
+            end
+            2: begin
+                cur_x_next = cur_x_plus_one;
+                cur_y_next = cur_y_minus_one;
+            end
+            3: begin
+                cur_x_next = cur_x_minus_one;
+            end
+            4: begin
+                cur_x_next = cur_x_plus_one;
+            end
+            5: begin
+                cur_x_next = cur_x_minus_one;
+                cur_y_next = cur_y_plus_one;
+            end
+            6: begin
+                cur_y_next = cur_y_plus_one;
+            end
+            7: begin
+                cur_x_next = cur_x_plus_one;
+                cur_y_next = cur_y_plus_one;
+            end
         endcase
     end
 
@@ -131,13 +186,6 @@ module dla_particle_walk #(
     end
 
     always @(posedge clk) begin
-        if (check_done & hit_neighbor & state[S_CHECK_WAIT]) begin
-            walk_valid <= 1;
-        end
-        else if (state[S_IDLE]) begin
-            walk_valid <= 0;
-        end
-
         if (walk_start && state[S_IDLE]) begin
             cur_x <= walk_init_x;
             cur_y <= walk_init_y;
@@ -155,10 +203,8 @@ module dla_particle_walk #(
     // --------------------------------
 
 
-    dla_lsfr #(.WIDTH(LSFR_WIDTH), .TAP(16), .SEED(16))
-    u_dla_lsfr_x (.clk(clk), .rst(rst), .shift(move), .value(lsfr_x));
+    dla_lsfr #(.WIDTH(LSFR_WIDTH), .TAP('hD008), .SEED('hffff))
+    u_dla_lsfr (.clk(clk), .rst(rst), .shift(move), .value(lsfr_random));
 
-    dla_lsfr #(.WIDTH(LSFR_WIDTH), .TAP(16), .SEED(32))
-    u_dla_lsfr_y (.clk(clk), .rst(rst), .shift(move), .value(lsfr_y));
 
 endmodule

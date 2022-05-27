@@ -41,17 +41,18 @@ module dla_particle_check #(
     localparam S_IDLE  = 0,
                S_REQ   = 1,   // Send request to the vram
                S_READ  = 2,   // wait for the vram to get the read data back
-               S_CHECK = 3;   // check the data
-    reg [3:0]                   state;
-    logic [3:0]                 state_next;
+               S_CHECK = 3,   // check the data
+               S_BDR   = 4;   // hit the boundary
+    reg [4:0]                   state;
+    logic [4:0]                 state_next;
 
     reg [AVN_DW-1:0]            vram_avn_readdata_s0;
     reg [8:0]                   pos_counter_oh; // onehot counter to calculate the x, y coordinates
 
-    logic [2:0]                 offset_xx;
-    logic [2:0]                 offset_yy;
-    logic [$clog2(HSIZE)-1:0]   post_xx;
-    logic [$clog2(VSIZE)-1:0]   post_yy;
+    logic [2:0]                 offset_x;
+    logic [2:0]                 offset_y;
+    logic [$clog2(HSIZE)-1:0]   post_x;
+    logic [$clog2(VSIZE)-1:0]   post_y;
     logic                       x_hit_boundary;
     logic                       y_hit_boundary;
     logic                       pos_counter_oh_shift;
@@ -60,11 +61,11 @@ module dla_particle_check #(
     // Main logic
     // --------------------------------
 
-    assign x_hit_boundary = (check_x == 0) | (check_x == HSIZE-1);
-    assign y_hit_boundary = (check_y == 0) | (check_y == VSIZE-1);
+    assign x_hit_boundary = (check_x == 0) | (check_x >= HSIZE-1);
+    assign y_hit_boundary = (check_y == 0) | (check_y >= VSIZE-1);
     assign hit_boundary = x_hit_boundary | y_hit_boundary;
-    assign hit_neighbor = vram_avn_readdata_s0 == 0;
-    assign vram_avn_address = {{(AVN_AW-$clog2(HSIZE)){1'b0}}, post_xx} + post_yy * HSIZE;
+    assign hit_neighbor = vram_avn_readdata_s0 == {AVN_DW{1'b1}};
+    assign vram_avn_address = {{(AVN_AW-$clog2(HSIZE)){1'b0}}, post_x} + post_y * HSIZE;
 
     // check the timing to see if we need to register the address to improve timing
     /*
@@ -75,27 +76,27 @@ module dla_particle_check #(
         | y   | 3   | 4   | 5    |
         | y+1 | 6   | 7   | 8    |
     */
-    assign offset_xx[0] = pos_counter_oh[0] | pos_counter_oh[3] | pos_counter_oh[6];
-    assign offset_xx[1] = pos_counter_oh[1] | pos_counter_oh[4] | pos_counter_oh[7];
-    assign offset_xx[2] = pos_counter_oh[2] | pos_counter_oh[5] | pos_counter_oh[8];
+    assign offset_x[0] = pos_counter_oh[0] | pos_counter_oh[3] | pos_counter_oh[6];
+    assign offset_x[1] = pos_counter_oh[1] | pos_counter_oh[4] | pos_counter_oh[7];
+    assign offset_x[2] = pos_counter_oh[2] | pos_counter_oh[5] | pos_counter_oh[8];
 
-    assign offset_yy[0] = pos_counter_oh[0] | pos_counter_oh[1] | pos_counter_oh[2];
-    assign offset_yy[1] = pos_counter_oh[3] | pos_counter_oh[4] | pos_counter_oh[5];
-    assign offset_yy[2] = pos_counter_oh[6] | pos_counter_oh[7] | pos_counter_oh[8];
+    assign offset_y[0] = pos_counter_oh[0] | pos_counter_oh[1] | pos_counter_oh[2];
+    assign offset_y[1] = pos_counter_oh[3] | pos_counter_oh[4] | pos_counter_oh[5];
+    assign offset_y[2] = pos_counter_oh[6] | pos_counter_oh[7] | pos_counter_oh[8];
 
     always @* begin
-        post_xx = check_x;
-        post_yy = check_y;
+        post_x = check_x;
+        post_y = check_y;
         case(1)
-            offset_xx[0]: post_xx = check_x - 1;
-            offset_xx[1]: post_xx = check_x;
-            offset_xx[2]: post_xx = check_x + 1;
+            offset_x[0]: post_x = check_x - 1;
+            offset_x[1]: post_x = check_x;
+            offset_x[2]: post_x = check_x + 1;
         endcase
 
         case(1)
-            offset_yy[0]: post_yy = check_y - 1;
-            offset_yy[1]: post_yy = check_y;
-            offset_yy[2]: post_yy = check_y + 1;
+            offset_y[0]: post_y = check_y - 1;
+            offset_y[1]: post_y = check_y;
+            offset_y[2]: post_y = check_y + 1;
         endcase
     end
 
@@ -109,9 +110,10 @@ module dla_particle_check #(
         case(1)
 
             state[S_IDLE]: begin
-                check_done = check_start & hit_boundary;
                 if (check_start && !hit_boundary)
                                 state_next[S_REQ] = 1;
+                else if (check_start && hit_boundary)
+                                state_next[S_BDR] = 1;
                 else            state_next[S_IDLE] = 1;
             end
 
@@ -132,9 +134,13 @@ module dla_particle_check #(
                 // if we hit neighbor or we have checked all of the position then we are check_done
                 check_done = hit_neighbor | pos_counter_oh[8];
                 pos_counter_oh_shift = 1;
-                if (hit_neighbor | pos_counter_oh[8])
-                                state_next[S_IDLE] = 1;
+                if (check_done) state_next[S_IDLE] = 1;
                 else            state_next[S_REQ] = 1;
+            end
+
+            state[S_BDR]: begin
+                check_done = 1;
+                                state_next[S_IDLE] = 1;
             end
         endcase
     end

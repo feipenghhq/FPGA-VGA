@@ -20,6 +20,8 @@ __pycache__
 *.qsf
 *db
 *tmp
+*.qip
+*.ppf
 quartus
 
 

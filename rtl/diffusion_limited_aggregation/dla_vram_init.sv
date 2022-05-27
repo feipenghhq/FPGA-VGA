@@ -72,6 +72,7 @@ module dla_vram_init #(
             end
             state[S_SET]: begin
                 vram_avn_write = 1;
+                vram_avn_writedata = {AVN_DW{1'b1}};
                 if (!vram_avn_waitrequest)
                                 state_next[S_DONE] = 1;
                 else            state_next[S_SET] = 1;

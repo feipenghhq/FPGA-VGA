@@ -9,7 +9,7 @@
  */
 
 module dla_simulate #(
-    parameter N         = 2000,
+    parameter N         = 20000,
     parameter AVN_AW    = 18,
     parameter AVN_DW    = 16,
     parameter HSIZE     = 640,
@@ -111,7 +111,7 @@ module dla_simulate #(
 
         init_start = 0;
         walk_start = 0;
-        state_next = state;
+        state_next = 0;
         case(1)
             state[S_IDLE]: begin
                 init_start = 1;
@@ -125,9 +125,9 @@ module dla_simulate #(
                 walk_start = 1;
                                 state_next[S_WALK] = 1;
             end
-            state[S_WRITE]: begin
+            state[S_WALK]: begin
                 if (walk_done)  state_next[S_WRITE] = 1;
-                else            state_next[S_WRITE] = 1;
+                else            state_next[S_WALK] = 1;
             end
             state[S_WRITE]: begin
                 if (sim_done)   state_next[S_DONE] = 1;
@@ -141,12 +141,12 @@ module dla_simulate #(
 
     always @(posedge clk) begin
         if (rst) begin
-            state <= S_IDLE;
+            state <= 1;
             par_count <= N;
         end
         else begin
             state <= state_next;
-            if (walk_start) par_count <= par_count - 1;
+            if (walk_valid) par_count <= par_count - 1;
         end
     end
 
@@ -225,6 +225,7 @@ module dla_simulate #(
     (/*AUTOINST*/
      // Outputs
      .walk_done                         (walk_done),
+     .walk_valid                        (walk_valid),
      .vram_avn_address                  (walk_vram_avn_address[AVN_AW-1:0]), // Templated
      .vram_avn_write                    (walk_vram_avn_write),   // Templated
      .vram_avn_writedata                (walk_vram_avn_writedata[AVN_DW-1:0]), // Templated
@@ -246,8 +247,8 @@ module dla_simulate #(
     dla_lsfr
     #(
      .WIDTH     (LSFR_WIDTH),
-     .TAP       (16),
-     .SEED      (16))
+     .TAP       ('hD008),
+     .SEED      ('habcd))
     u_dla_lsfr_x
     (.clk       (clk),
      .rst       (rst),
@@ -257,8 +258,8 @@ module dla_simulate #(
     dla_lsfr
     #(
       .WIDTH    (LSFR_WIDTH),
-      .TAP      (16),
-      .SEED     (32))
+      .TAP      ('hD008),
+      .SEED     ('h1234))
     u_dla_lsfr_y
     (.clk       (clk),
      .rst       (rst),
