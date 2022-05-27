@@ -51,8 +51,6 @@ derive_pll_clocks -create_base_clocks
 # Set Clock Groups
 #**************************************************************
 
-set_clock_groups -asynchronous -group [get_clocks {sdram_clk}]
-
 
 #**************************************************************
 # Set False Path

@@ -10,9 +10,9 @@ PWD 	 = $(shell pwd)
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_line_buffer.inc
+include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_linebuffer.inc
 VERILOG_SOURCES += $(VERILOG)
-TOPLEVEL = video_system_line_buffer
+TOPLEVEL = video_system_linebuffer
 
 MODULE 	 = test
 

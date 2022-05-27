@@ -13,7 +13,7 @@
 
 `include "vga.svh"
 
-module video_system_line_buffer #(
+module video_system_linebuffer #(
     parameter RSIZE     = 4,
     parameter GSIZE     = 4,
     parameter BSIZE     = 4,
@@ -109,20 +109,20 @@ module video_system_line_buffer #(
 
 
     /* vga_core_line_buffer AUTO_TEMPLATE (
-      .line_buffer_\(.*\) (daisy_system_\1),
+      .linebuffer_\(.*\) (daisy_system_\1),
     )
     */
-    vga_core_line_buffer
+    vga_core_linebuffer
     #(
       .RSIZE                            (RSIZE),
       .GSIZE                            (GSIZE),
       .BSIZE                            (BSIZE),
       .RGB_SIZE                         (RGB_SIZE)
     )
-    u_vga_core_line_buffer
+    u_vga_core_linebuffer
     (/*AUTOINST*/
      // Outputs
-     .line_buffer_rdy                   (daisy_system_rdy),      // Templated
+     .linebuffer_rdy                    (daisy_system_rdy),      // Templated
      .vga_r                             (vga_r[RSIZE-1:0]),
      .vga_g                             (vga_g[GSIZE-1:0]),
      .vga_b                             (vga_b[BSIZE-1:0]),
@@ -133,8 +133,8 @@ module video_system_line_buffer #(
      .pixel_rst                         (pixel_rst),
      .sys_clk                           (sys_clk),
      .sys_rst                           (sys_rst),
-     .line_buffer_data                  (daisy_system_data),     // Templated
-     .line_buffer_vld                   (daisy_system_vld));      // Templated
+     .linebuffer_data                   (daisy_system_data),     // Templated
+     .linebuffer_vld                    (daisy_system_vld));      // Templated
 
 endmodule
 

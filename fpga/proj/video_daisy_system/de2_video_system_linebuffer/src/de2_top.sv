@@ -156,18 +156,18 @@ module de2_top (
    assign AUD_XCK    = 1'b0;
 
    //Disable DRAM.
-   // assign DRAM_ADDR  = 12'h0;
-   // assign DRAM_BA_0  = 1'b0;
-   // assign DRAM_BA_1  = 1'b0;
-   // assign DRAM_CAS_N = 1'b1;
-   // assign DRAM_CKE   = 1'b0;
-   // assign DRAM_CLK   = 1'b0;
-   // assign DRAM_CS_N  = 1'b1;
-   // assign DRAM_DQ    = 16'hzzzz;
-   // assign DRAM_LDQM  = 1'b0;
-   // assign DRAM_RAS_N = 1'b1;
-   // assign DRAM_UDQM  = 1'b0;
-   // assign DRAM_WE_N  = 1'b1;
+   assign DRAM_ADDR  = 12'h0;
+   assign DRAM_BA_0  = 1'b0;
+   assign DRAM_BA_1  = 1'b0;
+   assign DRAM_CAS_N = 1'b1;
+   assign DRAM_CKE   = 1'b0;
+   assign DRAM_CLK   = 1'b0;
+   assign DRAM_CS_N  = 1'b1;
+   assign DRAM_DQ    = 16'hzzzz;
+   assign DRAM_LDQM  = 1'b0;
+   assign DRAM_RAS_N = 1'b1;
+   assign DRAM_UDQM  = 1'b0;
+   assign DRAM_WE_N  = 1'b1;
 
    //Disable Ethernet.
    assign ENET_CLK   = 1'b0;
@@ -243,24 +243,15 @@ module de2_top (
     logic pixel_rst;
     logic sys_clk;
     logic sys_rst;
-    logic avs_write;
-
 
     logic [3:0] vga_r;
     logic [3:0] vga_g;
     logic [3:0] vga_b;
 
-    logic           avs_video_bar_core_address;
-    logic           avs_video_bar_core_write;
-    logic  [31:0]   avs_video_bar_core_writedata;
 
-    logic           avs_video_rgb2gray_core_address;
-    logic           avs_video_rgb2gray_core_write;
-    logic  [31:0]   avs_video_rgb2gray_core_writedata;
-
-    assign VGA_R = {vga_r, {6{vga_r[3]}} };
-    assign VGA_G = {vga_g, {6{vga_g[3]}} };
-    assign VGA_B = {vga_b, {6{vga_b[3]}} };
+    assign VGA_R = {vga_r, {6{vga_r[3]}}};
+    assign VGA_G = {vga_g, {6{vga_g[3]}}};
+    assign VGA_B = {vga_b, {6{vga_b[3]}}};
 
     assign VGA_BLANK = 1'b1;
     assign VGA_SYNC  = 1'b0;
@@ -275,8 +266,8 @@ module de2_top (
         .c1     (VGA_CLK)
     );
 
-    video_system_line_buffer
-    u_video_system_line_buffer (
+    video_system_linebuffer
+    u_video_system_linebuffer (
         .pixel_clk                          (VGA_CLK),
         .pixel_rst                          (pixel_rst),
         .sys_clk                            (sys_clk),
@@ -287,25 +278,17 @@ module de2_top (
         .vga_hsync                          (VGA_HS),
         .vga_vsync                          (VGA_VS),
         .avs_video_bar_core_address         (0),
-        .avs_video_bar_core_write           (avs_write),
+        .avs_video_bar_core_write           (~KEY[0]),
         .avs_video_bar_core_writedata       (SW[0]),
         .avs_video_sprite_core_address      (0),
-        .avs_video_sprite_core_write        (avs_write),
+        .avs_video_sprite_core_write        (~KEY[0]),
         .avs_video_sprite_core_writedata    (SW[1]),
         .avs_pacman_core_address            (0),
-        .avs_pacman_core_write              (avs_write),
+        .avs_pacman_core_write              (~KEY[0]),
         .avs_pacman_core_writedata          (SW[2]),
         .avs_video_rgb2gray_core_address    (0),
-        .avs_video_rgb2gray_core_write      (avs_write),
+        .avs_video_rgb2gray_core_write      (~KEY[0]),
         .avs_video_rgb2gray_core_writedata  (SW[3]),
-    );
-
-    vidao_daisy_system_bypass_control
-    u_vidao_daisy_system_bypass_control (
-        .sys_clk        (sys_clk),
-        .sys_rst        (sys_rst),
-        .bypass_write   (KEY[0]),
-        .avs_write      (avs_write),
     );
 
 endmodule
