@@ -126,6 +126,7 @@ module vga_core_linebuffer #(
     (
         .pixel_clk      (pixel_clk),
         .pixel_rst      (pixel_rst),
+        .vga_start      (1),
         .vga_hsync      (vga_sync_vga_hsync),
         .vga_vsync      (vga_sync_vga_vsync),
         .video_on       (vga_sync_video_on ),

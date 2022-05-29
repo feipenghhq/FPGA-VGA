@@ -23,6 +23,8 @@ module vga_sync #(
     input           pixel_clk,
     input           pixel_rst,
 
+    input           vga_start,
+
     output reg      vga_hsync,
     output reg      vga_vsync,
     output reg      video_on,
@@ -55,7 +57,7 @@ module vga_sync #(
     assign v_counter_fire = v_counter == `V_COUNT-1;
 
     always @(posedge pixel_clk) begin
-        if (pixel_rst) begin
+        if (pixel_rst || ~vga_start) begin
             h_counter <= '0;
             v_counter <= '0;
             video_on <= 0;
