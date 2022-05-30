@@ -33,9 +33,9 @@ module video_rgb2gray_gen #(
 );
 
     // conver the weight into 8 bit values
-    localparam RW = 53;   // 21 / 100 * 256
-    localparam GW = 184;  // 72 / 100 * 256
-    localparam BW = 18;   // 7 / 100 * 256
+    localparam logic [7:0] RW = 53;   // 21 / 100 * 256
+    localparam logic [7:0] GW = 184;  // 72 / 100 * 256
+    localparam logic [7:0] BW = 18;   // 7 / 100 * 256
 
     localparam SIZE = RGB_SIZE / 3;
 

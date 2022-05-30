@@ -58,8 +58,6 @@ module video_rgb2gray_core #(
     logic [RGB_SIZE-1:0]    stage_out_rgb;
     logic [RGB_SIZE-1:0]    rgb2gray_rgb;
 
-    logic                   src_fire;
-
     /*AUTOREG*/
 
     /*AUTOWIRE*/
@@ -86,7 +84,6 @@ module video_rgb2gray_core #(
     // --------------------------------
 
     assign snk_rgb = ctrl_bypass ? stage_out_rgb : rgb2gray_rgb;
-    assign src_fire = src_vld & src_rdy;
 
     // --------------------------------
     // Module Declaration

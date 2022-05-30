@@ -107,6 +107,7 @@
     assign ctrl_wen = avs_write & (avs_address == 0);
     assign x_origin_wen = avs_write & (avs_address == 4);
     assign y_origin_wen = avs_write & (avs_address == 8);
+    assign sprite_rate_wen = avs_write & (avs_address == 12);
 
     always @(posedge clk) begin
         if (rst) begin
@@ -137,7 +138,7 @@
 
     assign sprite_ram_we = avs_write & (avs_address > 8);
     assign sprite_ram_din = avs_writedata[RGB_SIZE-1:0];
-    assign sprite_ram_addr_tmp = avs_address[SPRITE_RAM_AW:0] - 'h10;
+    assign sprite_ram_addr_tmp = avs_address - 16;
     assign sprite_ram_addr_w = sprite_ram_addr_tmp[SPRITE_RAM_AW-1:0];
 
     assign sprite_vld = src_rdy & src_vld;

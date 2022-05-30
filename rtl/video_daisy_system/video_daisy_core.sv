@@ -108,6 +108,7 @@ module video_daisy_core #(
     assign bar_core_src_fc.vc = fc_vcount;
     assign bar_core_src_fc.frame_start = frame_start;
     assign bar_core_src_vld = frame_display;
+    assign bar_core_src_rgb = 0;
 
     // --------------------------------
     // Module Declaration
@@ -116,7 +117,7 @@ module video_daisy_core #(
     /* vga_frame_counter AUTO_TEMPLATE (
      .clk       (sys_clk),
      .rst       (sys_rst),
-     .fc_clear  (0),
+     .fc_clear  (1'b0),
      .frame_end (),
     );
     */
@@ -132,7 +133,7 @@ module video_daisy_core #(
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
-     .fc_clear                          (0),                     // Templated
+     .fc_clear                          (1'b0),                  // Templated
      .fc_enable                         (fc_enable));
 
     /* video_bar_core AUTO_TEMPLATE (

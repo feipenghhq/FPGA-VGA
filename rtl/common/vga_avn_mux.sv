@@ -60,15 +60,15 @@ module vga_avn_mux #(
 );
 
 
-    logic fifo_empty;
-    logic fifo_full;
-    logic fifo_write;
-    logic fifo_read;
+    logic       fifo_empty;
+    logic       fifo_full;
+    logic       fifo_write;
+    logic       fifo_read;
 
-    logic port2_grant;
-    logic port2_pending_read;
+    logic       port2_grant;
+    logic       port2_read_pending;
 
-    assign port2_grant = (port2_avn_read | port2_avn_write);
+    assign port2_grant = port2_avn_read | port2_avn_write;
 
     assign out_avn_read         = (port2_grant ? port2_avn_read : port1_avn_read) & ~fifo_full;
     assign out_avn_write        = port2_grant ? port2_avn_write : port1_avn_write;
@@ -78,11 +78,11 @@ module vga_avn_mux #(
 
     assign port1_avn_readdata       = out_avn_readdata;
     assign port1_avn_waitrequest    = out_avn_waitrequest | port2_grant | (port1_avn_read & fifo_full);
-    assign port1_avn_readdatavalid  = ~port2_pending_read & out_avn_readdatavalid;
+    assign port1_avn_readdatavalid  = ~port2_read_pending & out_avn_readdatavalid;
 
     assign port2_avn_readdata       = out_avn_readdata;
     assign port2_avn_waitrequest    = out_avn_waitrequest | (port2_avn_read & fifo_full);
-    assign port2_avn_readdatavalid  = port2_pending_read & out_avn_readdatavalid;
+    assign port2_avn_readdatavalid  = port2_read_pending & out_avn_readdatavalid;
 
     assign fifo_read = out_avn_readdatavalid;
     assign fifo_write = out_avn_read & ~out_avn_waitrequest;
@@ -91,13 +91,13 @@ module vga_avn_mux #(
         .WIDTH  (1),
         .DEPTH  (PENDING_READ)
     )
-    u_pending_read(
+    u_read_pending_fifo(
         .reset  (rst),
         .clk    (clk),
         .push   (fifo_write),
         .pop    (fifo_read),
         .din    (port2_grant),
-        .dout   (port2_pending_read),
+        .dout   (port2_read_pending),
         .full   (fifo_full),
         .empty  (fifo_empty)
     );

@@ -61,8 +61,8 @@ module vga_core_linebuffer #(
     localparam              LINEBUFFER_DEPTH = 1024;
     localparam              LINEBUFFER_WIDTH = RGB_SIZE+1;
 
-    localparam              S_SYNC = 0,
-                            S_DISP = 1;
+    localparam logic        S_SYNC = 0;
+    localparam logic        S_DISP = 1;
     reg                     state;
 
     logic                   vga_sync_vga_hsync;
@@ -86,7 +86,7 @@ module vga_core_linebuffer #(
     always @(posedge pixel_clk) begin
         vga_hsync <= vga_sync_vga_hsync;
         vga_vsync <= vga_sync_vga_vsync;
-        {vga_r, vga_g, vga_b} <= vga_sync_video_on ? linebuffer_dout[RGB_SIZE-1:0] : 0;
+        {vga_r, vga_g, vga_b} <= vga_sync_video_on ? linebuffer_dout[RGB_SIZE-1:0] : '0;
     end
 
     always @(posedge pixel_clk) begin
@@ -126,7 +126,7 @@ module vga_core_linebuffer #(
     (
         .pixel_clk      (pixel_clk),
         .pixel_rst      (pixel_rst),
-        .vga_start      (1),
+        .vga_start      (1'b1),
         .vga_hsync      (vga_sync_vga_hsync),
         .vga_vsync      (vga_sync_vga_vsync),
         .video_on       (vga_sync_video_on ),

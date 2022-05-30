@@ -96,7 +96,7 @@
 
     // resize the data resolution
     assign {bar_r, bar_g, bar_b} = bar_rgb;
-    assign bar_r_resized = BSIZE > 4 ? {bar_r[3:0], {(RSIZE-4){1'b0}}} : bar_r[3:(4-RSIZE)];
+    assign bar_r_resized = RSIZE > 4 ? {bar_r[3:0], {(RSIZE-4){1'b0}}} : bar_r[3:(4-RSIZE)];
     assign bar_g_resized = GSIZE > 4 ? {bar_g[3:0], {(GSIZE-4){1'b0}}} : bar_g[3:(4-GSIZE)];
     assign bar_b_resized = BSIZE > 4 ? {bar_b[3:0], {(BSIZE-4){1'b0}}} : bar_b[3:(4-BSIZE)];
     assign bar_rgb_resized = {bar_r_resized, bar_g_resized, bar_b_resized};

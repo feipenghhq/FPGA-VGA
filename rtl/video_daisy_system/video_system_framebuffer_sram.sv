@@ -85,7 +85,8 @@ module video_system_framebuffer_sram #(
     logic [AVN_DW-1:0]   sram_avn_writedata;
     logic                sram_avn_waitrequest;
 
-
+    logic                framebuffer_avn_write;
+    logic                framebuffer_avn_read;
     logic [AVN_DW/8-1:0] framebuffer_avn_byteenable;
     logic                framebuffer_avn_waitrequest;
     logic [AVN_AW-1:0]   framebuffer_avn_address;
@@ -103,6 +104,8 @@ module video_system_framebuffer_sram #(
     assign daisy_system_rdy = ~framebuffer_avn_waitrequest;
     assign framebuffer_avn_address = ({{(AVN_AW-`H_SIZE){1'b0}},daisy_system_fc.hc} + (daisy_system_fc.vc * `H_DISPLAY));
     assign framebuffer_avn_byteenable = {AVN_DW/8{1'b1}};
+    assign framebuffer_avn_write = daisy_system_vld;
+    assign framebuffer_avn_read = 0;
 
     always @* begin
         framebuffer_avn_writedata = 0;
@@ -147,10 +150,10 @@ module video_system_framebuffer_sram #(
 
 
     /* vga_controller_sram AUTO_TEMPLATE (
-      .framebuffer_avn_read         (0),
+      .framebuffer_avn_read         (1'b0),
       .framebuffer_avn_readdata     (),
       .framebuffer_avn_readdatavalid(),
-      .framebuffer_avn_write        (daisy_system_vld),
+      .framebuffer_avn_write        (framebuffer_avn_write),
     )
     */
     vga_controller_sram
@@ -189,8 +192,8 @@ module video_system_framebuffer_sram #(
      .pixel_rst                         (pixel_rst),
      .sys_clk                           (sys_clk),
      .sys_rst                           (sys_rst),
-     .framebuffer_avn_read              (0),                     // Templated
-     .framebuffer_avn_write             (daisy_system_vld),      // Templated
+     .framebuffer_avn_read              (framebuffer_avn_read),
+     .framebuffer_avn_write             (framebuffer_avn_write),
      .framebuffer_avn_address           (framebuffer_avn_address[AVN_AW-1:0]),
      .framebuffer_avn_writedata         (framebuffer_avn_writedata[AVN_DW-1:0]),
      .framebuffer_avn_byteenable        (framebuffer_avn_byteenable[AVN_DW/8-1:0]));
