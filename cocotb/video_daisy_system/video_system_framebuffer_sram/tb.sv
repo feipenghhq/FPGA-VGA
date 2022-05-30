@@ -51,7 +51,7 @@ module video_system_frame_buffer_sram_tb #(
     wire [SRAM_DW-1:0]      sram_dq;
 
 
-    video_system_frame_buffer_sram u_video_system_frame_buffer_sram(.*);
+    video_system_framebuffer_sram u_video_system_frame_buffer_sram(.*);
     sdram_model u_sdram_model(.*);
 
 

@@ -70,19 +70,19 @@ module vga_avn_mux #(
 
     assign port2_grant = (port2_avn_read | port2_avn_write);
 
-    assign out_avn_read = (port2_grant ? port2_avn_read : port1_avn_read) & ~fifo_full;
-    assign out_avn_write = port2_grant ? port2_avn_write : port1_avn_write;
-    assign out_avn_address = port2_grant ? port2_avn_address : port1_avn_address;
-    assign out_avn_byteenable = port2_grant ? port2_avn_byteenable : port1_avn_byteenable;
-    assign out_avn_writedata = port2_grant ? port2_avn_writedata : port1_avn_writedata;
+    assign out_avn_read         = (port2_grant ? port2_avn_read : port1_avn_read) & ~fifo_full;
+    assign out_avn_write        = port2_grant ? port2_avn_write : port1_avn_write;
+    assign out_avn_address      = port2_grant ? port2_avn_address : port1_avn_address;
+    assign out_avn_byteenable   = port2_grant ? port2_avn_byteenable : port1_avn_byteenable;
+    assign out_avn_writedata    = port2_grant ? port2_avn_writedata : port1_avn_writedata;
 
-    assign port1_avn_readdata = out_avn_readdata;
-    assign port1_avn_waitrequest = out_avn_waitrequest | port2_grant | (port1_avn_read & fifo_full);
-    assign port1_avn_readdatavalid = ~port2_pending_read & out_avn_readdatavalid;
+    assign port1_avn_readdata       = out_avn_readdata;
+    assign port1_avn_waitrequest    = out_avn_waitrequest | port2_grant | (port1_avn_read & fifo_full);
+    assign port1_avn_readdatavalid  = ~port2_pending_read & out_avn_readdatavalid;
 
-    assign port2_avn_readdata = out_avn_readdata;
-    assign port2_avn_waitrequest = out_avn_waitrequest | (port2_avn_read & fifo_full);
-    assign port2_avn_readdatavalid = port2_pending_read & out_avn_readdatavalid;
+    assign port2_avn_readdata       = out_avn_readdata;
+    assign port2_avn_waitrequest    = out_avn_waitrequest | (port2_avn_read & fifo_full);
+    assign port2_avn_readdatavalid  = port2_pending_read & out_avn_readdatavalid;
 
     assign fifo_read = out_avn_readdatavalid;
     assign fifo_write = out_avn_read & ~out_avn_waitrequest;

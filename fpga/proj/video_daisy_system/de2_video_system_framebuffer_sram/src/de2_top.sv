@@ -243,20 +243,10 @@ module de2_top (
     logic           pixel_rst;
     logic           sys_clk;
     logic           sys_rst;
-    logic           avs_write;
 
     logic [3:0]     vga_r;
     logic [3:0]     vga_g;
     logic [3:0]     vga_b;
-
-    logic           avs_video_bar_core_address;
-    logic           avs_video_bar_core_write;
-    logic  [31:0]   avs_video_bar_core_writedata;
-
-    logic           avs_video_rgb2gray_core_address;
-    logic           avs_video_rgb2gray_core_write;
-    logic  [31:0]   avs_video_rgb2gray_core_writedata;
-
 
     assign VGA_R = {vga_r, {6{vga_r[3]}} };
     assign VGA_G = {vga_g, {6{vga_g[3]}} };
@@ -275,8 +265,8 @@ module de2_top (
         .c1     (VGA_CLK)
     );
 
-    video_system_frame_buffer_sram
-    u_video_system_frame_buffer_sram (
+    video_system_framebuffer_sram
+    u_video_system_framebuffer_sram (
         .pixel_clk                          (VGA_CLK),
         .pixel_rst                          (pixel_rst),
         .sys_clk                            (sys_clk),
@@ -287,16 +277,16 @@ module de2_top (
         .vga_hsync                          (VGA_HS),
         .vga_vsync                          (VGA_VS),
         .avs_video_bar_core_address         (0),
-        .avs_video_bar_core_write           (avs_write),
+        .avs_video_bar_core_write           (~KEY[0]),
         .avs_video_bar_core_writedata       (SW[0]),
         .avs_video_sprite_core_address      (0),
-        .avs_video_sprite_core_write        (avs_write),
+        .avs_video_sprite_core_write        (~KEY[0]),
         .avs_video_sprite_core_writedata    (SW[1]),
         .avs_pacman_core_address            (0),
-        .avs_pacman_core_write              (avs_write),
+        .avs_pacman_core_write              (~KEY[0]),
         .avs_pacman_core_writedata          (SW[2]),
         .avs_video_rgb2gray_core_address    (0),
-        .avs_video_rgb2gray_core_write      (avs_write),
+        .avs_video_rgb2gray_core_write      (~KEY[0]),
         .avs_video_rgb2gray_core_writedata  (SW[3]),
         .sram_addr                          (SRAM_ADDR),
         .sram_dq                            (SRAM_DQ),
@@ -305,14 +295,6 @@ module de2_top (
         .sram_we_n                          (SRAM_WE_N),
         .sram_be_n                          ({SRAM_UB_N, SRAM_LB_N})
 
-    );
-
-    vidao_daisy_system_bypass_control
-    u_vidao_daisy_system_bypass_control (
-        .sys_clk        (sys_clk),
-        .sys_rst        (sys_rst),
-        .bypass_write   (KEY[0]),
-        .avs_write      (avs_write),
     );
 
 endmodule

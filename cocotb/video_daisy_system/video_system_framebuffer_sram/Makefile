@@ -10,7 +10,7 @@ PWD 	 = $(shell pwd)
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_frame_buffer_sram.inc
+include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_framebuffer_sram.inc
 VERILOG_SOURCES += $(VERILOG)
 VERILOG_SOURCES += tb.sv
 TOPLEVEL = video_system_frame_buffer_sram_tb

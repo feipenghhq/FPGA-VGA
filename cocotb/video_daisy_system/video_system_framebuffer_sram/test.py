@@ -39,4 +39,4 @@ async def setup(dut):
 @cocotb.test()
 async def sanity(dut):
     await setup(dut)
-    await Timer(2000, units="us")
+    await Timer(20000, units="us")

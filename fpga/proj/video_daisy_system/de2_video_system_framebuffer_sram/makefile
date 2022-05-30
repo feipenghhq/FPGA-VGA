@@ -10,7 +10,7 @@ PWD		 = $(shell pwd)
 PROJECT  = video_daisy_system
 TOP		 = de2_top
 
-include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_frame_buffer_sram.inc
+include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_framebuffer_sram.inc
 VERILOG  	+= $(PWD)/src/altpllvga.v
 VERILOG  	+= $(PWD)/src/de2_top.sv
 
@@ -24,4 +24,4 @@ PIN      	+= $(PWD)/src/DE2_pin_assignment.tcl
 include $(GIT_ROOT)/fpga/scripts/makefile.intel.noqsys.mk
 
 pre: $(OUT_DIR)
-	cp -rfl $(GIT_ROOT)/rtl/video_daisy_system/*.mem $(OUT_DIR)/.
+	cp -rfl $(GIT_ROOT)/utils/sprites/*.mem $(OUT_DIR)/.

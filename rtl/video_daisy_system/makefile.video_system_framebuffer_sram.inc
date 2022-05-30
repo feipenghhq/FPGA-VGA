@@ -12,6 +12,7 @@ VERILOG 	+= $(COMMON)/video_core_stages.sv
 VERILOG 	+= $(COMMON)/vga_dsync.sv
 VERILOG 	+= $(COMMON)/vga_async_fifo.sv
 VERILOG 	+= $(COMMON)/vga_fifo.sv
+VERILOG 	+= $(COMMON)/vga_avn_mux.sv
 
 VERILOG 	+= $(VGA_CORE)/vga_frame_counter.sv
 VERILOG 	+= $(VGA_CORE)/vga_sync.sv

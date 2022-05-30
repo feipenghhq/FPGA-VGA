@@ -115,7 +115,6 @@ module vga_core_framebuffer #(
     // Main logic
     // ------------------------------
 
-
     // the source avalone talks to the memory port 1
     assign pro_avn_read  = framebuffer_avn_read;
     assign pro_avn_write = framebuffer_avn_write;
@@ -130,8 +129,9 @@ module vga_core_framebuffer #(
     // the prefetch buffer logic talk to ram port 2
     assign pxl_avn_write = 0;
     assign pxl_avn_writedata = 0;
-    assign pxl_avn_byteenable = 0;
-    assign pxl_avn_read = ~vga_prefetch_buffer_afull;   // FIXME
+    assign pxl_avn_byteenable = {AVN_DW/8{1'b1}};   // byte enable need to be set for the read operation
+
+    assign pxl_avn_read = ~vga_prefetch_buffer_afull;   // FIXME: may not work if memory read latency > 1
     assign pxl_avn_address = ({{(AVN_AW-`H_SIZE){1'b0}}, h_counter} + v_counter * `H_DISPLAY);
 
     assign vga_prefetch_buffer_write = pxl_avn_readdatavalid;
@@ -160,13 +160,12 @@ module vga_core_framebuffer #(
         end
     end
 
-    always @(posedge sys_clk) begin
-        if (sys_rst) begin
-            vga_sync_vga_start <= 0;
-        end
-        else begin
-            if (vga_prefetch_buffer_afull) vga_sync_vga_start <= 1'b1;
-        end
+    // for better synchronization, we should fill up the fifo before vga start.
+    // ideally we should have a cdc logic here for vga_prefetch_buffer_full but since
+    // vga_start is quasi static so we should be good
+    always @(posedge pixel_clk) begin
+        if (pixel_rst) vga_sync_vga_start <= 0;
+        else if (!vga_sync_vga_start && vga_prefetch_buffer_afull) vga_sync_vga_start <= 1'b1;
     end
 
     always @(posedge pixel_clk) begin
@@ -200,7 +199,7 @@ module vga_core_framebuffer #(
       // Parameters
       .WIDTH        (AVN_DW),
       .DEPTH        (BUF_SIZE),
-      .AFULL_THRES  (4))
+      .AFULL_THRES  (1))        // FIXME: 1 may not work if memory read latency > 1
     u_vga_prefetch_buffer
     (
      // Outputs
