@@ -14,13 +14,23 @@
 
 `include "vga_timing.svh"
 
+// Horizontal and vertical counter size
 `define H_SIZE  $clog2(`H_COUNT)
 `define V_SIZE  $clog2(`V_COUNT)
 
+// RGN color size
+`define R_SIZE  4
+`define G_SIZE  4
+`define B_SIZE  4
+`define RGB_SIZE (`R_SIZE + `G_SIZE + `B_SIZE)
+
 typedef struct packed {
-    logic [`H_SIZE-1:0] hc;
-    logic [`V_SIZE-1:0] vc;
-    logic               frame_start;
-} vga_fc_t;
+    logic [`H_SIZE-1:0]     hc;
+    logic [`V_SIZE-1:0]     vc;
+    logic [`R_SIZE-1:0]     r;
+    logic [`G_SIZE-1:0]     g;
+    logic [`B_SIZE-1:0]     b;
+    logic                   start;
+} vga_frame_t;
 
 `endif

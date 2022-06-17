@@ -4,13 +4,11 @@
  * Author: Heqing Huang
  * Date Created: 05/05/2022
  * ---------------------------------------------------------------
- * Sprite ram
- *
  * A 1R1W memory
  * ---------------------------------------------------------------
  */
 
-module video_sprite_ram #(
+module vga_ram_1r1w #(
     parameter AW = 10,
     parameter DW = 12,
     parameter MEM_FILE = ""
