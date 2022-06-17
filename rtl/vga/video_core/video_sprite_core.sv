@@ -55,8 +55,9 @@ module video_sprite_core #(
     logic [SPRITE_RAM_AW-1:0]   sprite_ram_addr_r;
     logic [`RGB_SIZE-1:0]       sprite_ram_dout;
 
-    logic                       x_in_region;
-    logic                       y_in_region;
+    reg                         x_in_region;
+    reg                         y_in_region;
+
     logic                       key_match;
     logic                       bypass_final;
 
@@ -78,23 +79,24 @@ module video_sprite_core #(
     //      ram_addr = x + y * SPRITE_X_SIZE        (1)
 
     // substract the hc, vc coordinates from its origin to get the sprite coordinates
-    assign x = source_frame_s0.hc - x0[`H_SIZE-1:0];
-    assign y = source_frame_s0.vc - y0[`V_SIZE-1:0];
+    assign x = source_frame.hc - x0[`H_SIZE-1:0];
+    assign y = source_frame.vc - y0[`V_SIZE-1:0];
 
     // check if the x, y coordinates is in the sprite region or not,
-    assign x_in_region = x >= 0 & (x < SPRITE_HSIZE);
-    assign y_in_region = y >= 0 & (y < SPRITE_VSIZE);
+    always @(posedge clk) begin
+        x_in_region <= x >= 0 & (x < SPRITE_HSIZE);
+        y_in_region <= y >= 0 & (y < SPRITE_VSIZE);
+    end
 
     // convert the x,y coordinates to ram address
     assign sprite_ram_addr_r = x + y * SPRITE_HSIZE;
 
     // chroma−key blending and multiplixing
     assign key_match = sprite_ram_dout == KEY_COLOR;
-    assign bypass_final = bypass | ~x_in_region | ~y_in_region | ~key_match;
+    assign bypass_final = bypass | ~x_in_region | ~y_in_region | key_match;
     assign {sprite_r, sprite_g, sprite_b} = sprite_ram_dout;
 
     // pipeline stage - 2 stages
-
     always @(posedge clk) begin
         if (rst) begin
             source_vld_s0 <= 0;

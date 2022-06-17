@@ -4,7 +4,7 @@
  * Author: Heqing Huang
  * Date Created: 05/01/2022
  * ---------------------------------------------------------------
- * VGA core with line buffer
+ * VGA controller with line buffer
  * ---------------------------------------------------------------
  *
  * A line buffer is generally an asynchronous FIFO that stores
@@ -27,11 +27,7 @@
 
 `include "vga.svh"
 
-module vga_core_linebuffer #(
-    parameter RSIZE = 4,
-    parameter GSIZE = 4,
-    parameter BSIZE = 4,
-    parameter RGB_SIZE    = 12,
+module vga_controller_linebuffer #(
     parameter START_DELAY = 12
 ) (
     input                   pixel_clk,
@@ -41,14 +37,14 @@ module vga_core_linebuffer #(
     input                   sys_rst,
 
     // line buffer source
-    input [RGB_SIZE:0]      linebuffer_data,
+    input [`RGB_SIZE:0]     linebuffer_data,
     input                   linebuffer_vld,
     output                  linebuffer_rdy,
 
     // vga interface
-    output reg [RSIZE-1:0]  vga_r,
-    output reg [GSIZE-1:0]  vga_g,
-    output reg [BSIZE-1:0]  vga_b,
+    output reg [`R_SIZE-1:0]  vga_r,
+    output reg [`G_SIZE-1:0]  vga_g,
+    output reg [`B_SIZE-1:0]  vga_b,
 
     output reg              vga_hsync,
     output reg              vga_vsync
@@ -59,7 +55,7 @@ module vga_core_linebuffer #(
     // ------------------------------
 
     localparam              LINEBUFFER_DEPTH = 1024;
-    localparam              LINEBUFFER_WIDTH = RGB_SIZE+1;
+    localparam              LINEBUFFER_WIDTH = `RGB_SIZE+1;
 
     localparam logic        S_SYNC = 0;
     localparam logic        S_DISP = 1;
@@ -76,7 +72,7 @@ module vga_core_linebuffer #(
     logic                   linebuffer_full;
     logic                   linebuffer_write;
     logic                   linebuffer_read;
-    logic [RGB_SIZE:0]      linebuffer_dout;
+    logic [`RGB_SIZE:0]     linebuffer_dout;
 
 
     // --------------------------------
@@ -86,7 +82,7 @@ module vga_core_linebuffer #(
     always @(posedge pixel_clk) begin
         vga_hsync <= vga_sync_vga_hsync;
         vga_vsync <= vga_sync_vga_vsync;
-        {vga_r, vga_g, vga_b} <= vga_sync_video_on ? linebuffer_dout[RGB_SIZE-1:0] : '0;
+        {vga_r, vga_g, vga_b} <= vga_sync_video_on ? linebuffer_dout[`RGB_SIZE-1:0] : '0;
     end
 
     always @(posedge pixel_clk) begin
@@ -110,7 +106,7 @@ module vga_core_linebuffer #(
     assign linebuffer_write = linebuffer_vld & linebuffer_rdy;
     assign linebuffer_rdy = ~linebuffer_full;
 
-    assign vga_frame_start = linebuffer_dout[RGB_SIZE];
+    assign vga_frame_start = linebuffer_dout[`RGB_SIZE];
 
     // --------------------------------
     // Module initialization

@@ -68,8 +68,9 @@ module video_sprite_animation_core #(
 
     logic                       sprite_rate_counter_fire;
 
-    logic                       x_in_region;
-    logic                       y_in_region;
+    reg                         x_in_region;
+    reg                         y_in_region;
+
     logic                       key_match;
     logic                       bypass_final;
 
@@ -115,8 +116,10 @@ module video_sprite_animation_core #(
     assign y = source_frame_s0.vc - y0[`V_SIZE-1:0];
 
     // check if the x, y coordinates is in the sprite region or not,
-    assign x_in_region = x >= 0 & (x < SPRITE_HSIZE);
-    assign y_in_region = y >= 0 & (y < SPRITE_VSIZE);
+    always @(posedge clk) begin
+        x_in_region <= x >= 0 & (x < SPRITE_HSIZE);
+        y_in_region <= y >= 0 & (y < SPRITE_VSIZE);
+    end
 
     // convert the x,y coordinates to ram address
     assign sprite_position = x + y * SPRITE_HSIZE;
@@ -124,7 +127,7 @@ module video_sprite_animation_core #(
 
     // chroma−key blending and multiplixing
     assign key_match = sprite_ram_dout == KEY_COLOR;
-    assign bypass_final = bypass | ~x_in_region | ~y_in_region | ~key_match;
+    assign bypass_final = bypass | ~x_in_region | ~y_in_region | key_match;
     assign {sprite_r, sprite_g, sprite_b} = sprite_ram_dout;
 
     // pipeline stage - 2 stages

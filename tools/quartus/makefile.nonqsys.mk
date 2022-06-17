@@ -7,17 +7,28 @@
 #########################################################
 
 GIT_ROOT 	?= $(shell git rev-parse --show-toplevel)
-SCRIPT_DIR 	?= $(GIT_ROOT)/fpga/scripts
-OUT_DIR 	?= quartus
+SCRIPT_DIR 	?= $(GIT_ROOT)/tools/quartus
 
-PART    	?= EP2C35F672C7
-FAMILY  	?= Cyclone II
-PROJECT	 	?=
-TOP			?=
-VERILOG 	?=
-SDC 		?=
-PIN			?=
-DEFINE		?=
+#########################################################
+# Project specific variable
+#########################################################
+
+# device part
+PART ?= EP2C35F672C7
+# device family
+FAMILY ?= Cyclone II
+# project name
+PROJECT ?=
+# top level name
+TOP ?=
+# verilog source files
+VERILOG ?=
+# sdc files
+SDC	?=
+# pin assignment files
+PIN ?=
+# project output directory
+OUT_DIR ?= outputs
 
 
 export QUARTUS_PART 	= $(PART)
@@ -50,7 +61,7 @@ $(OUT_DIR):
 	mkdir -p $(OUT_DIR)
 
 $(SOF): $(VERILOG) $(OUT_DIR) pre
-	cd $(OUT_DIR) && quartus_sh --64bit -t $(SCRIPT_DIR)/intel.build.tcl
+	cd $(OUT_DIR) && quartus_sh --64bit -t $(SCRIPT_DIR)/quartus_build.tcl
 
 pgm: $(SOF)
 	quartus_pgm --mode JTAG -o "p;$(SOF)"

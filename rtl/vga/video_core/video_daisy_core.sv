@@ -30,8 +30,8 @@ module video_daisy_core
     input                   rgb2gray_core_bypass,
 
     // down stream
-    output reg              sink_vld,
-    output vga_frame_t      sink_frame
+    output reg              daisy_system_vld,
+    output vga_frame_t      daisy_system_frame
 );
 
     // --------------------------------
@@ -41,6 +41,7 @@ module video_daisy_core
     /*AUTOREG*/
 
     /*AUTOWIRE*/
+
 
 
     localparam PIPELINE = 1;
@@ -66,17 +67,15 @@ module video_daisy_core
     vga_frame_t             rgb2gray_core_src_frame;
     logic                   rgb2gray_core_src_vld;
 
-    logic                   stall;
-
     // --------------------------------
     // Main logic
     // --------------------------------
 
-    assign fc_enable = bar_core_src_rdy;
+    assign fc_enable = ~stall;
 
     assign bar_core_src_frame.hc = fc_hcount;
     assign bar_core_src_frame.vc = fc_vcount;
-    assign bar_core_src_frame.frame_start = frame_start;
+    assign bar_core_src_frame.start = frame_start;
     assign bar_core_src_vld = frame_display;
 
     // --------------------------------
@@ -110,24 +109,18 @@ module video_daisy_core
      .clk           (sys_clk),
      .rst           (sys_rst),
      .source_\(.*\) (bar_core_src_\1),
-     .snk_\(.*\)    (pikachu_core_src_\1),
+     .sink_\(.*\)   (pikachu_core_src_\1),
      .bypass        (bar_core_bypass),
     );
     */
     video_bar_core
-    #(
-      .RSIZE                            (RSIZE),
-      .GSIZE                            (GSIZE),
-      .BSIZE                            (BSIZE),
-      .RGB_SIZE                         (RGB_SIZE),
-      .PIPELINE                         (PIPELINE))
     u_bar_core
     (/*AUTOINST*/
      // Interfaces
      .source_frame                      (bar_core_src_frame),    // Templated
-     .sink_frame                        (sink_frame),
+     .sink_frame                        (pikachu_core_src_frame), // Templated
      // Outputs
-     .sink_vld                          (sink_vld),
+     .sink_vld                          (pikachu_core_src_vld),  // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
@@ -139,10 +132,11 @@ module video_daisy_core
      .clk           (sys_clk),
      .rst           (sys_rst),
      .source_\(.*\) (pikachu_core_src_\1),
-     .snk_\(.*\)    (pacman_core_src_\1),
+     .sink_\(.*\)   (pacman_core_src_\1),
      .bypass        (pikachu_core_bypass),
      .x0            (32),
      .y0            (32),
+     .sprite_ram\(.*\) (0),
     );
     */
     video_sprite_core
@@ -155,9 +149,9 @@ module video_daisy_core
     (/*AUTOINST*/
      // Interfaces
      .source_frame                      (pikachu_core_src_frame), // Templated
-     .sink_frame                        (sink_frame),
+     .sink_frame                        (pacman_core_src_frame), // Templated
      // Outputs
-     .sink_vld                          (sink_vld),
+     .sink_vld                          (pacman_core_src_vld),   // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
@@ -166,18 +160,19 @@ module video_daisy_core
      .source_vld                        (pikachu_core_src_vld),  // Templated
      .x0                                (32),                    // Templated
      .y0                                (32),                    // Templated
-     .sprite_ram_we                     (sprite_ram_we),
-     .sprite_ram_addr_w                 (sprite_ram_addr_w[SPRITE_RAM_AW-1:0]),
-     .sprite_ram_din                    (sprite_ram_din[`RGB_SIZE-1:0]));
+     .sprite_ram_we                     (0),                     // Templated
+     .sprite_ram_addr_w                 (0),                     // Templated
+     .sprite_ram_din                    (0));                     // Templated
 
     /* video_sprite_animation_core AUTO_TEMPLATE (
      .clk           (sys_clk),
      .rst           (sys_rst),
      .source_\(.*\) (pacman_core_src_\1),
-     .snk_\(.*\)    (rgb2gray_core_src_\1),
+     .sink_\(.*\)   (rgb2gray_core_src_\1),
      .bypass        (pacman_core_bypass),
      .x0            (64),
      .y0            (64),
+     .sprite_ram\(.*\) (0),
      .sprite_rate   (10000000),
     );
     */
@@ -186,22 +181,21 @@ module video_daisy_core
 
     video_sprite_animation_core
     #(
-      .RGB_SIZE       (RGB_SIZE),
       .SPRITE_HSIZE   (SPRITE_HSIZE),
       .SPRITE_VSIZE   (SPRITE_VSIZE),
       .SPRITE_AW      (SPRITE_RAM_AW),
       .SPRITE_IDXW    (PACMAN_SPRITE_IDXW),
       .SPRITE_RAM_AW  (SPRITE_RAM_AW+PACMAN_SPRITE_IDXW),
       .SPRITE_NUM     (PACMAN_SPRITE_NUM),
-      .MEM_FILE       ("pacman.mem"),
+      .MEM_FILE       ("pacman.mem")
     )
     u_pacman_core
     (/*AUTOINST*/
      // Interfaces
      .source_frame                      (pacman_core_src_frame), // Templated
-     .sink_frame                        (sink_frame),
+     .sink_frame                        (rgb2gray_core_src_frame), // Templated
      // Outputs
-     .sink_vld                          (sink_vld),
+     .sink_vld                          (rgb2gray_core_src_vld), // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated
@@ -211,9 +205,9 @@ module video_daisy_core
      .source_vld                        (pacman_core_src_vld),   // Templated
      .x0                                (64),                    // Templated
      .y0                                (64),                    // Templated
-     .sprite_ram_we                     (sprite_ram_we),
-     .sprite_ram_addr_w                 (sprite_ram_addr_w[SPRITE_RAM_AW-1:0]),
-     .sprite_ram_din                    (sprite_ram_din[`RGB_SIZE-1:0]));
+     .sprite_ram_we                     (0),                     // Templated
+     .sprite_ram_addr_w                 (0),                     // Templated
+     .sprite_ram_din                    (0));                     // Templated
 
 
     /* video_rgb2gray_core AUTO_TEMPLATE (
@@ -221,19 +215,18 @@ module video_daisy_core
      .clk           (sys_clk),
      .rst           (sys_rst),
      .source_\(.*\) (rgb2gray_core_src_\1),
-     .snk_\(.*\)    (daisy_system_\1),
+     .sink_\(.*\)   (daisy_system_\1),
      .bypass        (rgb2gray_core_bypass),
     )
     */
     video_rgb2gray_core
-    #(/*AUTOINSTPARAM*/)
     u_video_rgb2gray_core
     (/*AUTOINST*/
      // Interfaces
      .source_frame                      (rgb2gray_core_src_frame), // Templated
-     .sink_frame                        (sink_frame),
+     .sink_frame                        (daisy_system_frame),    // Templated
      // Outputs
-     .sink_vld                          (sink_vld),
+     .sink_vld                          (daisy_system_vld),      // Templated
      // Inputs
      .clk                               (sys_clk),               // Templated
      .rst                               (sys_rst),               // Templated

@@ -65,18 +65,10 @@ module de2_top (
         .vga_b                              (vga_b),
         .vga_hsync                          (VGA_HS),
         .vga_vsync                          (VGA_VS),
-        .avs_video_bar_core_address         (1'h0),
-        .avs_video_bar_core_write           (~KEY[0]),
-        .avs_video_bar_core_writedata       ({31'h0, SW[0]}),
-        .avs_video_sprite_core_address      (11'h0),
-        .avs_video_sprite_core_write        (~KEY[0]),
-        .avs_video_sprite_core_writedata    ({31'h0, SW[1]}),
-        .avs_pacman_core_address            (13'h0),
-        .avs_pacman_core_write              (~KEY[0]),
-        .avs_pacman_core_writedata          ({31'h0, SW[2]}),
-        .avs_video_rgb2gray_core_address    (1'h0),
-        .avs_video_rgb2gray_core_write      (~KEY[0]),
-        .avs_video_rgb2gray_core_writedata  ({31'h0, SW[3]})
+        .bar_core_bypass                    (SW[0]),
+        .pikachu_core_bypass                (SW[1]),
+        .pacman_core_bypass                 (SW[2]),
+        .rgb2gray_core_bypass               (SW[3]),
     );
 
 endmodule

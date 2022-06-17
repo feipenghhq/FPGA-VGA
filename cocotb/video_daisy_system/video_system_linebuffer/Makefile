@@ -10,7 +10,7 @@ PWD 	 = $(shell pwd)
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-include $(GIT_ROOT)/rtl/video_daisy_system/makefile.video_system_linebuffer.inc
+include $(GIT_ROOT)/rtl/projects/video_daisy_system/makefile.video_system_linebuffer.inc
 VERILOG_SOURCES += $(VERILOG)
 TOPLEVEL = video_system_linebuffer
 
@@ -22,7 +22,7 @@ LINT ?= 0
 
 
 ifeq ($(SIM),verilator)
-EXTRA_ARGS += -I$(GIT_ROOT)/rtl/common
+EXTRA_ARGS += -I$(GIT_ROOT)/rtl/include
 ifeq ($(COVR), 1)
 	EXTRA_ARGS += --coverage
 endif

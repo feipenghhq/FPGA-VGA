@@ -22,7 +22,7 @@ __pycache__
 *tmp
 *.qip
 *.ppf
-quartus
+outputs
 
 
 # qsys
