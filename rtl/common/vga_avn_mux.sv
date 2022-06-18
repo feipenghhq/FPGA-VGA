@@ -10,7 +10,7 @@
  * The framebuffer needs 2 rw port memory. However, many FPGA
  * off-chip memory only has 1 port such as sram, sdram.
  *
- * This module is a provide a muxing logic to expend the 1 rw port
+ * This module provide a muxing logic to expend the 1 rw port
  * memory to 2 rw ports.
  *
  * Port 2 has priority over port 1.
@@ -33,7 +33,7 @@ module vga_avn_mux #(
     input                   port1_avn_write,
     input  [AVN_AW-1:0]     port1_avn_address,
     input  [AVN_DW-1:0]     port1_avn_writedata,
-    input [AVN_DW/8-1:0]    port1_avn_byteenable,
+    input  [AVN_DW/8-1:0]   port1_avn_byteenable,
     output [AVN_DW-1:0]     port1_avn_readdata,
     output                  port1_avn_readdatavalid,
     output                  port1_avn_waitrequest,
@@ -43,7 +43,7 @@ module vga_avn_mux #(
     input                   port2_avn_write,
     input  [AVN_AW-1:0]     port2_avn_address,
     input  [AVN_DW-1:0]     port2_avn_writedata,
-    input [AVN_DW/8-1:0]    port2_avn_byteenable,
+    input  [AVN_DW/8-1:0]   port2_avn_byteenable,
     output [AVN_DW-1:0]     port2_avn_readdata,
     output                  port2_avn_readdatavalid,
     output                  port2_avn_waitrequest,
@@ -59,8 +59,6 @@ module vga_avn_mux #(
     input                   out_avn_waitrequest
 );
 
-
-    logic       fifo_empty;
     logic       fifo_full;
     logic       fifo_write;
     logic       fifo_read;
@@ -78,11 +76,11 @@ module vga_avn_mux #(
 
     assign port1_avn_readdata       = out_avn_readdata;
     assign port1_avn_waitrequest    = out_avn_waitrequest | port2_grant | (port1_avn_read & fifo_full);
-    assign port1_avn_readdatavalid  = ~port2_read_pending & out_avn_readdatavalid;
+    assign port1_avn_readdatavalid  = out_avn_readdatavalid & ~port2_read_pending;
 
     assign port2_avn_readdata       = out_avn_readdata;
     assign port2_avn_waitrequest    = out_avn_waitrequest | (port2_avn_read & fifo_full);
-    assign port2_avn_readdatavalid  = port2_read_pending & out_avn_readdatavalid;
+    assign port2_avn_readdatavalid  = out_avn_readdatavalid & port2_read_pending;
 
     assign fifo_read = out_avn_readdatavalid;
     assign fifo_write = out_avn_read & ~out_avn_waitrequest;
@@ -99,7 +97,7 @@ module vga_avn_mux #(
         .din    (port2_grant),
         .dout   (port2_read_pending),
         .full   (fifo_full),
-        .empty  (fifo_empty)
+        .empty  ()
     );
 
 endmodule

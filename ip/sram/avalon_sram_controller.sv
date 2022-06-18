@@ -6,14 +6,11 @@
  * ---------------------------------------------------------------
  * General SRAM controller with avalon inteface
  *
- * Note: The address of avalon MM interface is "WORD" address
- *       instead of "BYTE" address
+ * Note: The address of avalon MM interface is "WORD" address instead of "BYTE" address
  * ---------------------------------------------------------------
  */
 
 module avalon_sram_controller #(
-    parameter SRAM_AW = 18,   // SRAM address width
-    parameter SRAM_DW = 16,   // SRAM data width
     parameter AVN_AW = 18,    // Input bus address
     parameter AVN_DW = 16     // Input bus data width
 ) (
@@ -26,20 +23,21 @@ module avalon_sram_controller #(
     input  [AVN_DW-1:0]     avn_writedata,
     input  [AVN_DW/8-1:0]   avn_byteenable,
     output [AVN_DW-1:0]     avn_readdata,
+    output                  avn_readdatavalid,
     // sram interface
     output                  sram_ce_n,
     output                  sram_oe_n,
     output                  sram_we_n,
-    output [SRAM_DW/8-1:0]  sram_be_n,
-    output [SRAM_AW-1:0]    sram_addr,
-    inout [SRAM_DW-1:0]     sram_dq
+    output [AVN_DW/8-1:0]   sram_be_n,
+    output [AVN_AW-1:0]     sram_addr,
+    inout  [AVN_DW-1:0]     sram_dq
 );
 
     // --------------------------------------------
     //  Signal Declaration
     // --------------------------------------------
 
-    logic [SRAM_DW-1:0]   sram_dq_write;
+    logic [AVN_DW-1:0]    sram_dq_write;
     logic                 sram_dq_en;
 
     reg                   avn_read_s0;
@@ -83,6 +81,7 @@ module avalon_sram_controller #(
 
     // read data to user bus
     assign avn_readdata = sram_dq;
+    assign avn_readdatavalid = avn_read_s0;
 
 endmodule
 

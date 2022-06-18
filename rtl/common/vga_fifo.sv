@@ -15,14 +15,14 @@ module vga_fifo #(
     parameter WIDTH = 32,           // Data width
     parameter DEPTH = 4             // FIFO depth
 ) (
-    input                   reset,
-    input                   clk,
-    input                   push,
-    input                   pop,
-    input [WIDTH-1:0]       din,
-    output reg [WIDTH-1:0]  dout,
-    output                  full,
-    output                  empty
+    input                       reset,
+    input                       clk,
+    input                       push,
+    input                       pop,
+    input [WIDTH-1:0]           din,
+    output logic [WIDTH-1:0]    dout,
+    output                      full,
+    output                      empty
 );
 
     localparam AWIDTH = $clog2(DEPTH);

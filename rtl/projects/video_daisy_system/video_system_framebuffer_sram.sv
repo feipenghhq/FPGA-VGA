@@ -13,10 +13,6 @@
 `include "vga.svh"
 
 module video_system_framebuffer_sram #(
-    parameter RSIZE     = 4,
-    parameter GSIZE     = 4,
-    parameter BSIZE     = 4,
-    parameter RGB_SIZE  = 12,
     parameter SRAM_AW   = 18,   // SRAM address width
     parameter SRAM_DW   = 16    // SRAM data width
 ) (
@@ -27,29 +23,17 @@ module video_system_framebuffer_sram #(
     input                   sys_clk,
     input                   sys_rst,
 
+    input                   bar_core_bypass,
+    input                   pikachu_core_bypass,
+    input                   pacman_core_bypass,
+    input                   rgb2gray_core_bypass,
+
     // vga interface
-    output  [RSIZE-1:0]     vga_r,
-    output  [GSIZE-1:0]     vga_g,
-    output  [BSIZE-1:0]     vga_b,
+    output  [`R_SIZE-1:0]   vga_r,
+    output  [`G_SIZE-1:0]   vga_g,
+    output  [`B_SIZE-1:0]   vga_b,
     output                  vga_hsync,
     output                  vga_vsync,
-
-    // video bar core avalon insterface
-    input                   avs_video_bar_core_address,
-    input                   avs_video_bar_core_write,
-    input [31:0]            avs_video_bar_core_writedata,
-
-    input [10:0]            avs_video_sprite_core_address,
-    input                   avs_video_sprite_core_write,
-    input [31:0]            avs_video_sprite_core_writedata,
-
-    input [12:0]            avs_pacman_core_address,
-    input                   avs_pacman_core_write,
-    input [31:0]            avs_pacman_core_writedata,
-
-    input                   avs_video_rgb2gray_core_address,
-    input                   avs_video_rgb2gray_core_write,
-    input [31:0]            avs_video_rgb2gray_core_writedata,
 
     // the sram interface
     output                  sram_ce_n,
@@ -75,8 +59,6 @@ module video_system_framebuffer_sram #(
 
     /*AUTOREGINPUT*/
 
-    reg                  sram_avn_readdatavalid;
-
     logic [AVN_AW-1:0]   sram_avn_address;
     logic [AVN_DW/8-1:0] sram_avn_byteenable;
     logic                sram_avn_read;
@@ -92,24 +74,28 @@ module video_system_framebuffer_sram #(
     logic [AVN_AW-1:0]   framebuffer_avn_address;
     logic [AVN_DW-1:0]   framebuffer_avn_writedata;
 
-    vga_fc_t             daisy_system_fc;
-    logic [RGB_SIZE-1:0] daisy_system_rgb;
-    logic                daisy_system_vld;
-    logic                daisy_system_rdy;
+    vga_frame_t           daisy_system_frame;
+    logic [`RGB_SIZE-1:0] daisy_system_rgb;
+    logic                 daisy_system_vld;
+
+    logic                 stall;
 
     // --------------------------------
     // Main logic
     // --------------------------------
 
-    assign daisy_system_rdy = ~framebuffer_avn_waitrequest;
-    assign framebuffer_avn_address = ({{(AVN_AW-`H_SIZE){1'b0}},daisy_system_fc.hc} + (daisy_system_fc.vc * `H_DISPLAY));
+
+    assign framebuffer_avn_address = ({{(AVN_AW-`H_SIZE){1'b0}},daisy_system_frame.hc} + (daisy_system_frame.vc * `H_DISPLAY));
     assign framebuffer_avn_byteenable = {AVN_DW/8{1'b1}};
     assign framebuffer_avn_write = daisy_system_vld;
     assign framebuffer_avn_read = 0;
 
+    assign stall = framebuffer_avn_waitrequest;
+    assign daisy_system_rgb = {daisy_system_frame.r, daisy_system_frame.g, daisy_system_frame.b};
+
     always @* begin
         framebuffer_avn_writedata = 0;
-        framebuffer_avn_writedata[RGB_SIZE-1:0] = daisy_system_rgb;
+        framebuffer_avn_writedata[`RGB_SIZE-1:0] = daisy_system_rgb;
     end
 
     // --------------------------------
@@ -117,36 +103,20 @@ module video_system_framebuffer_sram #(
     // --------------------------------
 
     video_daisy_core
-    #(
-      .RSIZE                            (RSIZE),
-      .GSIZE                            (GSIZE),
-      .BSIZE                            (BSIZE),
-      .RGB_SIZE                         (RGB_SIZE))
     u_video_daisy_core
     (/*AUTOINST*/
      // Interfaces
-     .daisy_system_fc                   (daisy_system_fc),
+     .daisy_system_frame                (daisy_system_frame),
      // Outputs
-     .daisy_system_rgb                  (daisy_system_rgb[RGB_SIZE-1:0]),
      .daisy_system_vld                  (daisy_system_vld),
      // Inputs
-     .pixel_clk                         (pixel_clk),
-     .pixel_rst                         (pixel_rst),
      .sys_clk                           (sys_clk),
      .sys_rst                           (sys_rst),
-     .daisy_system_rdy                  (daisy_system_rdy),
-     .avs_video_bar_core_address        (avs_video_bar_core_address),
-     .avs_video_bar_core_write          (avs_video_bar_core_write),
-     .avs_video_bar_core_writedata      (avs_video_bar_core_writedata[31:0]),
-     .avs_video_sprite_core_address     (avs_video_sprite_core_address[10:0]),
-     .avs_video_sprite_core_write       (avs_video_sprite_core_write),
-     .avs_video_sprite_core_writedata   (avs_video_sprite_core_writedata[31:0]),
-     .avs_pacman_core_address           (avs_pacman_core_address[12:0]),
-     .avs_pacman_core_write             (avs_pacman_core_write),
-     .avs_pacman_core_writedata         (avs_pacman_core_writedata[31:0]),
-     .avs_video_rgb2gray_core_address   (avs_video_rgb2gray_core_address),
-     .avs_video_rgb2gray_core_write     (avs_video_rgb2gray_core_write),
-     .avs_video_rgb2gray_core_writedata (avs_video_rgb2gray_core_writedata[31:0]));
+     .stall                             (stall),
+     .bar_core_bypass                   (bar_core_bypass),
+     .pikachu_core_bypass               (pikachu_core_bypass),
+     .pacman_core_bypass                (pacman_core_bypass),
+     .rgb2gray_core_bypass              (rgb2gray_core_bypass));
 
 
     /* vga_controller_sram AUTO_TEMPLATE (
@@ -159,10 +129,6 @@ module video_system_framebuffer_sram #(
     vga_controller_sram
     #(/*AUTOINSTPARAM*/
       // Parameters
-      .RSIZE                            (RSIZE),
-      .GSIZE                            (GSIZE),
-      .BSIZE                            (BSIZE),
-      .RGB_SIZE                         (RGB_SIZE),
       .AVN_AW                           (AVN_AW),
       .AVN_DW                           (AVN_DW),
       .SRAM_AW                          (SRAM_AW),
@@ -172,9 +138,9 @@ module video_system_framebuffer_sram #(
     u_vga_controller_sram
     (/*AUTOINST*/
      // Outputs
-     .vga_r                             (vga_r[RSIZE-1:0]),
-     .vga_g                             (vga_g[GSIZE-1:0]),
-     .vga_b                             (vga_b[BSIZE-1:0]),
+     .vga_r                             (vga_r[`R_SIZE-1:0]),
+     .vga_g                             (vga_g[`G_SIZE-1:0]),
+     .vga_b                             (vga_b[`B_SIZE-1:0]),
      .vga_hsync                         (vga_hsync),
      .vga_vsync                         (vga_vsync),
      .framebuffer_avn_readdata          (),                      // Templated
@@ -192,8 +158,8 @@ module video_system_framebuffer_sram #(
      .pixel_rst                         (pixel_rst),
      .sys_clk                           (sys_clk),
      .sys_rst                           (sys_rst),
-     .framebuffer_avn_read              (framebuffer_avn_read),
-     .framebuffer_avn_write             (framebuffer_avn_write),
+     .framebuffer_avn_read              (1'b0),                  // Templated
+     .framebuffer_avn_write             (framebuffer_avn_write), // Templated
      .framebuffer_avn_address           (framebuffer_avn_address[AVN_AW-1:0]),
      .framebuffer_avn_writedata         (framebuffer_avn_writedata[AVN_DW-1:0]),
      .framebuffer_avn_byteenable        (framebuffer_avn_byteenable[AVN_DW/8-1:0]));
@@ -202,5 +168,5 @@ module video_system_framebuffer_sram #(
 endmodule
 
 // Local Variables:
-// verilog-library-flags:("-y ../vga_core/ -y ../vga_controller/  -y ../video_core/*/ -y ../../ip/sram/")
+// verilog-library-flags:("-y ../../vga/vga_controller_wrapper/  -y ../../vga/video_core -y ../../ip/sram/")
 // End:

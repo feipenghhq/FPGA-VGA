@@ -50,6 +50,10 @@ module video_system_frame_buffer_sram_tb #(
     logic [SRAM_DW-1:0]     sram_dq_read;
     wire [SRAM_DW-1:0]      sram_dq;
 
+    logic bar_core_bypass;
+    logic pikachu_core_bypass;
+    logic pacman_core_bypass;
+    logic rgb2gray_core_bypass;
 
     video_system_framebuffer_sram u_video_system_frame_buffer_sram(.*);
     sdram_model u_sdram_model(.*);

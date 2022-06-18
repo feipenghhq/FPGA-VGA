@@ -28,11 +28,7 @@
 
 `include "vga.svh"
 
-module vga_core_framebuffer_1rw #(
-    parameter RSIZE         = 4,
-    parameter GSIZE         = 4,
-    parameter BSIZE         = 4,
-    parameter RGB_SIZE      = 12,
+module vga_controller_framebuffer_1rw #(
     parameter AVN_AW        = 18,   // avalon address width
     parameter AVN_DW        = 16,   // avalon data width
     parameter BUF_SIZE      = 16,   // prefetch bufer size
@@ -45,9 +41,9 @@ module vga_core_framebuffer_1rw #(
     input                   pixel_rst,
 
     // vga interface
-    output [RSIZE-1:0]      vga_r,
-    output [GSIZE-1:0]      vga_g,
-    output [BSIZE-1:0]      vga_b,
+    output [`R_SIZE-1:0]    vga_r,
+    output [`G_SIZE-1:0]    vga_g,
+    output [`B_SIZE-1:0]    vga_b,
     output                  vga_hsync,
     output                  vga_vsync,
 
@@ -96,23 +92,19 @@ module vga_core_framebuffer_1rw #(
     logic                   pxl_avn_readdatavalid;
     logic                   pxl_avn_waitrequest;
 
-    vga_core_framebuffer
+    vga_controller_framebuffer
     #(/*AUTOINSTPARAM*/
       // Parameters
-      .RSIZE                            (RSIZE),
-      .GSIZE                            (GSIZE),
-      .BSIZE                            (BSIZE),
-      .RGB_SIZE                         (RGB_SIZE),
       .AVN_AW                           (AVN_AW),
       .AVN_DW                           (AVN_DW),
       .BUF_SIZE                         (BUF_SIZE),
       .START_DELAY                      (START_DELAY))
-    u_vga_core_framebuffer
+    u_vga_controller_framebuffer
     (/*AUTOINST*/
      // Outputs
-     .vga_r                             (vga_r[RSIZE-1:0]),
-     .vga_g                             (vga_g[GSIZE-1:0]),
-     .vga_b                             (vga_b[BSIZE-1:0]),
+     .vga_r                             (vga_r[`R_SIZE-1:0]),
+     .vga_g                             (vga_g[`G_SIZE-1:0]),
+     .vga_b                             (vga_b[`B_SIZE-1:0]),
      .vga_hsync                         (vga_hsync),
      .vga_vsync                         (vga_vsync),
      .framebuffer_avn_readdata          (framebuffer_avn_readdata[AVN_DW-1:0]),
