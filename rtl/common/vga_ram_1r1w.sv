@@ -15,6 +15,7 @@ module vga_ram_1r1w #(
 ) (
     input               clk,
     input               we,
+    input               en,
     input [AW-1:0]      addr_w,
     input [AW-1:0]      addr_r,
     input [DW-1:0]      din,
@@ -24,8 +25,8 @@ module vga_ram_1r1w #(
     reg [DW-1:0] ram[0:(1<<AW)-1];
 
     always @(posedge clk) begin
-        if (we) ram[addr_w] <= din;
-        dout <= ram[addr_r];
+        if (we && en) ram[addr_w] <= din;
+        if (en) dout <= ram[addr_r];
     end
 
     generate

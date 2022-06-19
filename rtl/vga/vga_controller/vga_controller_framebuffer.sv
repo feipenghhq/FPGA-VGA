@@ -57,7 +57,7 @@ module vga_controller_framebuffer #(
     output                  framebuffer_avn_readdatavalid,
     output                  framebuffer_avn_waitrequest,
 
-    // memory port 1 avalon interface - sys_clk used by the pixel processing logic
+    // memory port 1 avalon interface - sys_clk, used by the pixel processing logic
     output                  pro_avn_read,
     output                  pro_avn_write,
     output [AVN_AW-1:0]     pro_avn_address,
@@ -67,7 +67,7 @@ module vga_controller_framebuffer #(
     input                   pro_avn_readdatavalid,
     input                   pro_avn_waitrequest,
 
-    // memory port 2 avalon interface used by the vga sync logic
+    // memory port 2 avalon interface - sys_clk, used by the vga sync logic
     output                  pxl_avn_read,
     output                  pxl_avn_write,
     output [AVN_AW-1:0]     pxl_avn_address,
@@ -83,6 +83,7 @@ module vga_controller_framebuffer #(
     // ------------------------------
 
     localparam NUM_BYTE = AVN_DW / 8;
+    localparam MAX_READ = 4;
 
     logic               vga_sync_vga_hsync;
     logic               vga_sync_vga_vsync;
@@ -93,7 +94,6 @@ module vga_controller_framebuffer #(
     logic [AVN_DW-1:0]  vga_prefetch_buffer_din;
     logic               vga_prefetch_buffer_empty;
     logic               vga_prefetch_buffer_afull;
-    logic               vga_prefetch_buffer_full;
     logic               vga_prefetch_buffer_read;
     logic               vga_prefetch_buffer_write;
 
@@ -102,6 +102,9 @@ module vga_controller_framebuffer #(
 
     logic               h_counter_fire;
     logic               v_counter_fire;
+
+    reg [$clog2(MAX_READ+1)-1:0] pxl_read_cnt;
+    logic               pxl_avn_read_fire;
 
     // ------------------------------
     // Main logic
@@ -122,8 +125,24 @@ module vga_controller_framebuffer #(
     assign pxl_avn_writedata = 0;
     assign pxl_avn_byteenable = {NUM_BYTE{1'b1}};
     assign pxl_avn_address = ({{(AVN_AW-`H_SIZE){1'b0}}, h_counter} + v_counter * `H_DISPLAY);
+
     // whenever there are space in the prefetch buffer, fill it.
-    assign pxl_avn_read = ~vga_prefetch_buffer_afull;
+    assign pxl_avn_read = ~vga_prefetch_buffer_afull & (pxl_read_cnt < MAX_READ);
+    assign pxl_avn_read_fire = pxl_avn_read && !pxl_avn_waitrequest;
+
+    // because we use avalon pipelined interface here, we need to keep track of the read request we send
+    // if we have already send enough read request to the memory, we should wait
+    always @(posedge sys_clk) begin
+        if (sys_rst) pxl_read_cnt <= 0;
+        else begin
+            case ({pxl_avn_read_fire, pxl_avn_readdatavalid})
+                2'b00: pxl_read_cnt <= pxl_read_cnt;
+                2'b01: pxl_read_cnt <= pxl_read_cnt - 1;
+                2'b10: pxl_read_cnt <= pxl_read_cnt + 1;
+                2'b11: pxl_read_cnt <= pxl_read_cnt;
+            endcase
+        end
+    end
 
     // push the data into the prefetch fifo when the read data is available
     assign vga_prefetch_buffer_write = pxl_avn_readdatavalid;
@@ -144,7 +163,7 @@ module vga_controller_framebuffer #(
             v_counter <= '0;
         end
         // when the read request is taken, advance the counter
-        else if (pxl_avn_read && !pxl_avn_waitrequest) begin
+        else if (pxl_avn_read_fire) begin
             if (h_counter_fire) h_counter <= 'b0;
             else h_counter <= h_counter + 1'b1;
             if (h_counter_fire) begin
@@ -195,13 +214,13 @@ module vga_controller_framebuffer #(
       // Parameters
       .WIDTH        (AVN_DW),
       .DEPTH        (BUF_SIZE),
-      .AFULL_THRES  (4))
+      .AFULL_THRES  (MAX_READ))
     u_vga_prefetch_buffer
     (
      // Outputs
      .dout                              (vga_prefetch_buffer_dout),
      .empty                             (vga_prefetch_buffer_empty),
-     .full                              (vga_prefetch_buffer_full),
+     .full                              (),
      .afull                             (vga_prefetch_buffer_afull),
      // Inputs
      .rst_rd                            (pixel_rst),

@@ -55,104 +55,112 @@ module video_sprite_animation_core #(
     // Signal Declaration
     // --------------------------------
 
-    logic signed [`H_SIZE-1:0] x;
-    logic signed [`V_SIZE-1:0] y;
+    // stage 0
+    logic signed [`H_SIZE-1:0]  x_s0;
+    logic signed [`V_SIZE-1:0]  y_s0;
+    logic [SPRITE_AW-1:0]       sprite_position_s0;
+    logic [SPRITE_RAM_AW-1:0]   sprite_ram_addr_r_s0;
+    logic                       x_in_region_s0;
+    logic                       y_in_region_s0;
+    logic                       in_region_s0;
 
-    logic [SPRITE_RAM_AW-1:0]   sprite_ram_addr_r;
-    logic [`RGB_SIZE-1:0]       sprite_ram_dout;
+    reg [SPRITE_IDXW-1:0]       sprite_idx_s0;
+    reg [31:0]                  sprite_rate_counter_s0;
+    logic                       sprite_rate_counter_fire_s0;
 
-    logic [SPRITE_AW-1:0]       sprite_position;
+    // stage 1
+    vga_frame_t                 source_frame_s1;
+    reg                         source_vld_s1;
+    reg                         in_region_s1;
 
-    reg [SPRITE_IDXW-1:0]       sprite_idx;
-    reg [31:0]                  sprite_rate_counter;
+    logic [`RGB_SIZE-1:0]       sprite_ram_dout_s1;
+    logic [`R_SIZE-1:0]         sprite_r_s1;
+    logic [`G_SIZE-1:0]         sprite_g_s1;
+    logic [`B_SIZE-1:0]         sprite_b_s1;
 
-    logic                       sprite_rate_counter_fire;
+    logic                       key_match_s1;
+    logic                       bypass_final_s1;
 
-    reg                         x_in_region;
-    reg                         y_in_region;
-
-    logic                       key_match;
-    logic                       bypass_final;
-
-    logic [`R_SIZE-1:0]         sprite_r;
-    logic [`G_SIZE-1:0]         sprite_g;
-    logic [`B_SIZE-1:0]         sprite_b;
-
-    vga_frame_t                 source_frame_s0;
-    reg                         source_vld_s0;
-
-    // --------------------------------
+     // --------------------------------
     // Main logic
     // --------------------------------
+
+    //
+    // stage 0: calculate the position of the sprite and read the sprite memory
+    //
 
     //
     // The sprite ram is one-dimensional but the sprite coordinates is two-dimensional,
     // so we need to map the sprite coordinates x, y into one-dimension value to index the memory.
     // To do this, we use the following mapping funtion:
     //      ram_addr = x + y * SPRITE_X_SIZE        (1)
-    // The sprite index is on the most sigificant bits of the ram_address
 
-    assign sprite_rate_counter_fire = sprite_rate_counter == 0;
+    // substract the hc, vc coordinates from its origin to get the sprite coordinates
+    assign x_s0 = source_frame.hc - x0[`H_SIZE-1:0];
+    assign y_s0 = source_frame.vc - y0[`V_SIZE-1:0];
 
+    // check if the x, y coordinates is in the sprite region or not,
+    assign x_in_region_s0 = x_s0 >= 0 & (x_s0 < SPRITE_HSIZE);
+    assign y_in_region_s0 = y_s0 >= 0 & (y_s0 < SPRITE_VSIZE);
+    assign in_region_s0 = x_in_region_s0 & y_in_region_s0;
+
+    // convert the x,y coordinates to ram address
+    assign sprite_position_s0 = x_s0 + y_s0 * SPRITE_HSIZE;
+    assign sprite_ram_addr_r_s0 = {sprite_idx_s0, sprite_position_s0};
+
+    // sprite index
+    assign sprite_rate_counter_fire_s0 = sprite_rate_counter_s0 == 0;
     always @(posedge clk) begin
         if (rst) begin
-            sprite_rate_counter <= 0;
-            sprite_idx <= 0;
+            sprite_rate_counter_s0 <= 0;
+            sprite_idx_s0 <= 0;
         end
         else begin
-            if (sprite_rate_counter_fire) sprite_rate_counter <= sprite_rate;
-            else if (source_vld && !stall) sprite_rate_counter <= sprite_rate_counter - 1'b1;
-            if (sprite_rate_counter_fire) begin
-                /* verilator lint_off WIDTH */
-                if (sprite_idx == SPRITE_NUM-1) sprite_idx <= 0;
-                /* verilator lint_on WIDTH */
-                else sprite_idx <= sprite_idx + 1'b1;
+            if (sprite_rate_counter_fire_s0) sprite_rate_counter_s0 <= sprite_rate;
+            else if (source_vld && !stall) sprite_rate_counter_s0 <= sprite_rate_counter_s0 - 1'b1;
+            if (sprite_rate_counter_fire_s0) begin
+                if (sprite_idx_s0 == SPRITE_NUM[SPRITE_IDXW-1:0]-1) sprite_idx_s0 <= 0;
+                else sprite_idx_s0 <= sprite_idx_s0 + 1'b1;
             end
         end
     end
 
-    // substract the hc, vc coordinates from its origin to get the sprite coordinates
-    assign x = source_frame_s0.hc - x0[`H_SIZE-1:0];
-    assign y = source_frame_s0.vc - y0[`V_SIZE-1:0];
-
-    // check if the x, y coordinates is in the sprite region or not,
     always @(posedge clk) begin
-        x_in_region <= x >= 0 & (x < SPRITE_HSIZE);
-        y_in_region <= y >= 0 & (y < SPRITE_VSIZE);
-    end
-
-    // convert the x,y coordinates to ram address
-    assign sprite_position = x + y * SPRITE_HSIZE;
-    assign sprite_ram_addr_r = {sprite_idx, sprite_position};
-
-    // chroma−key blending and multiplixing
-    assign key_match = sprite_ram_dout == KEY_COLOR;
-    assign bypass_final = bypass | ~x_in_region | ~y_in_region | key_match;
-    assign {sprite_r, sprite_g, sprite_b} = sprite_ram_dout;
-
-    // pipeline stage - 2 stages
-
-    always @(posedge clk) begin
-        if (rst) begin
-            source_vld_s0 <= 0;
-            sink_vld <= 0;
-        end
-        else if (!stall) begin
-            source_vld_s0 <= source_vld;
-            sink_vld <= source_vld_s0;
-        end
+        if (rst) source_vld_s1 <= 0;
+        else if (!stall) source_vld_s1 <= source_vld;
     end
 
     always @(posedge clk) begin
         if (!stall) begin
-            source_frame_s0 <= source_frame;
+            // stage 0
+            in_region_s1 <= in_region_s0;
+            source_frame_s1 <= source_frame;
+        end
+    end
 
-            sink_frame.hc <= source_frame_s0.hc;
-            sink_frame.vc <= source_frame_s0.vc;
-            sink_frame.start <= source_frame_s0.start;
-            sink_frame.r <= bypass_final ? source_frame_s0.r : sprite_r;
-            sink_frame.g <= bypass_final ? source_frame_s0.g : sprite_g;
-            sink_frame.b <= bypass_final ? source_frame_s0.b : sprite_b;
+
+
+    //
+    // stage 1: get the sprite pixel data from the sprite ram
+    //
+
+    assign key_match_s1 = sprite_ram_dout_s1 == KEY_COLOR; // chroma−key blending and multiplixing
+    assign bypass_final_s1 = bypass | ~in_region_s1 | key_match_s1;
+    assign {sprite_r_s1, sprite_g_s1, sprite_b_s1} = sprite_ram_dout_s1;
+
+    always @(posedge clk) begin
+        if (rst) sink_vld <= 0;
+        else if (!stall) sink_vld <= source_vld_s1;
+    end
+
+    always @(posedge clk) begin
+        if (!stall) begin
+            sink_frame.hc <= source_frame_s1.hc;
+            sink_frame.vc <= source_frame_s1.vc;
+            sink_frame.start <= source_frame_s1.start;
+            sink_frame.r <= bypass_final_s1 ? source_frame_s1.r : sprite_r_s1;
+            sink_frame.g <= bypass_final_s1 ? source_frame_s1.g : sprite_g_s1;
+            sink_frame.b <= bypass_final_s1 ? source_frame_s1.b : sprite_b_s1;
         end
     end
 
@@ -171,10 +179,11 @@ module video_sprite_animation_core #(
     (
         .clk    (clk),
         .we     (sprite_ram_we),
+        .en     (~stall),
         .addr_w (sprite_ram_addr_w),
-        .addr_r (sprite_ram_addr_r),
+        .addr_r (sprite_ram_addr_r_s0),
         .din    (sprite_ram_din),
-        .dout   (sprite_ram_dout)
+        .dout   (sprite_ram_dout_s1)
     );
 
 endmodule

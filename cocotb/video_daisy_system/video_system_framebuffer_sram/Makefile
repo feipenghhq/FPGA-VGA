@@ -22,6 +22,7 @@ COVR ?= 0
 
 ifeq ($(SIM),verilator)
 EXTRA_ARGS += -I$(GIT_ROOT)/rtl/include
+EXTRA_ARGS += -DVGA_640x400
 ifeq ($(COVR), 1)
 	EXTRA_ARGS += --coverage
 endif

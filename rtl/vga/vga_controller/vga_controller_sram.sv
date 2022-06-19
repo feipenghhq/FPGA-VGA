@@ -13,8 +13,6 @@
 module vga_controller_sram #(
     parameter AVN_AW    = 18,
     parameter AVN_DW    = 16,
-    parameter SRAM_AW   = 18,
-    parameter SRAM_DW   = 16,
     parameter BUF_SIZE  = 16,
     parameter START_DELAY = 12
 
@@ -47,9 +45,9 @@ module vga_controller_sram #(
     output                  sram_ce_n,
     output                  sram_oe_n,
     output                  sram_we_n,
-    output [SRAM_DW/8-1:0]  sram_be_n,
-    output [SRAM_AW-1:0]    sram_addr,
-    inout  [SRAM_DW-1:0]    sram_dq
+    output [AVN_DW/8-1:0]   sram_be_n,
+    output [AVN_AW-1:0]     sram_addr,
+    inout  [AVN_DW-1:0]     sram_dq
 );
 
     // --------------------------------

@@ -13,8 +13,8 @@
 `include "vga.svh"
 
 module video_system_framebuffer_sram #(
-    parameter SRAM_AW   = 18,   // SRAM address width
-    parameter SRAM_DW   = 16    // SRAM data width
+    parameter AVN_AW   = 18,
+    parameter AVN_DW   = 16
 ) (
     // clock
     input                   pixel_clk,
@@ -39,13 +39,11 @@ module video_system_framebuffer_sram #(
     output                  sram_ce_n,
     output                  sram_oe_n,
     output                  sram_we_n,
-    output [SRAM_DW/8-1:0]  sram_be_n,
-    output [SRAM_AW-1:0]    sram_addr,
-    inout  [SRAM_DW-1:0]    sram_dq
+    output [AVN_DW/8-1:0]   sram_be_n,
+    output [AVN_AW-1:0]     sram_addr,
+    inout  [AVN_DW-1:0]     sram_dq
 );
 
-    localparam AVN_AW = 18;
-    localparam AVN_DW = 16;
     localparam BUF_SIZE = 16;
     localparam START_DELAY = 12;
 
@@ -131,8 +129,6 @@ module video_system_framebuffer_sram #(
       // Parameters
       .AVN_AW                           (AVN_AW),
       .AVN_DW                           (AVN_DW),
-      .SRAM_AW                          (SRAM_AW),
-      .SRAM_DW                          (SRAM_DW),
       .BUF_SIZE                         (BUF_SIZE),
       .START_DELAY                      (START_DELAY))
     u_vga_controller_sram
@@ -149,10 +145,10 @@ module video_system_framebuffer_sram #(
      .sram_ce_n                         (sram_ce_n),
      .sram_oe_n                         (sram_oe_n),
      .sram_we_n                         (sram_we_n),
-     .sram_be_n                         (sram_be_n[SRAM_DW/8-1:0]),
-     .sram_addr                         (sram_addr[SRAM_AW-1:0]),
+     .sram_be_n                         (sram_be_n[AVN_DW/8-1:0]),
+     .sram_addr                         (sram_addr[AVN_AW-1:0]),
      // Inouts
-     .sram_dq                           (sram_dq[SRAM_DW-1:0]),
+     .sram_dq                           (sram_dq[AVN_DW-1:0]),
      // Inputs
      .pixel_clk                         (pixel_clk),
      .pixel_rst                         (pixel_rst),
