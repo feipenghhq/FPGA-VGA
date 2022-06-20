@@ -13,9 +13,6 @@ TOP		 = de2_top
 include $(GIT_ROOT)/rtl/cellular_automaton/makefile.ca_frame_buffer_sram.inc
 VERILOG  	+= $(PWD)/src/altpllvga.v
 VERILOG  	+= $(PWD)/src/de2_top.sv
-
-DEFINE		+= VGA_640x400
-
 SEARCH   	+= $(GIT_ROOT)/rtl/common
 
 SDC	     	+= $(PWD)/src/de2_top.sdc

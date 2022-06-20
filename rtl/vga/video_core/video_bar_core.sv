@@ -53,7 +53,7 @@ module video_bar_core (
 
     // bar generation logic
     assign up = source_frame.hc[6:3];
-    assign down = 15 - source_frame.hc[6:3];
+    assign down = 4'd15 - source_frame.hc[6:3];
 
     always @* begin
         // 16 shade of gray

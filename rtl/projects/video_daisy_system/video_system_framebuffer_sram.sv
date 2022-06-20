@@ -13,7 +13,7 @@
 `include "vga.svh"
 
 module video_system_framebuffer_sram #(
-    parameter AVN_AW   = 18,
+    parameter AVN_AW   = 19,
     parameter AVN_DW   = 16
 ) (
     // clock

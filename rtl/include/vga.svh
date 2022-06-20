@@ -15,14 +15,18 @@
 `include "vga_timing.svh"
 
 // Horizontal and vertical counter size
-`define H_SIZE  $clog2(`H_COUNT)
-`define V_SIZE  $clog2(`V_COUNT)
+`define H_SIZE  ($clog2(`H_COUNT))
+`define V_SIZE  ($clog2(`V_COUNT))
+
+`define PIXELS      (`H_DISPLAY * `V_DISPLAY)
+`define PIXELS_SIZE ($clog2(`PIXELS))
+
 
 // RGN color size
-`define R_SIZE  4
-`define G_SIZE  4
-`define B_SIZE  4
-`define RGB_SIZE (`R_SIZE + `G_SIZE + `B_SIZE)
+`define R_SIZE      4
+`define G_SIZE      4
+`define B_SIZE      4
+`define RGB_SIZE    (`R_SIZE + `G_SIZE + `B_SIZE)
 
 typedef struct packed {
     logic [`H_SIZE-1:0]     hc;

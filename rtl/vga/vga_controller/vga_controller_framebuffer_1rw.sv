@@ -29,7 +29,7 @@
 `include "vga.svh"
 
 module vga_controller_framebuffer_1rw #(
-    parameter AVN_AW        = 18,   // avalon address width
+    parameter AVN_AW        = 19,   // avalon address width
     parameter AVN_DW        = 16,   // avalon data width
     parameter BUF_SIZE      = 16,   // prefetch bufer size
     parameter START_DELAY   = 12

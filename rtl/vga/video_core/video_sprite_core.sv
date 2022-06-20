@@ -94,7 +94,7 @@ module video_sprite_core #(
     assign in_region_s0 = x_in_region_s0 & y_in_region_s0;
 
     // convert the x,y coordinates to ram address
-    assign sprite_ram_addr_r_s0 = x_s0 + y_s0 * SPRITE_HSIZE;
+    assign sprite_ram_addr_r_s0 = x_s0 + y_s0 * SPRITE_HSIZE[`V_SIZE-1:0];
 
     always @(posedge clk) begin
         if (rst) source_vld_s1 <= 0;

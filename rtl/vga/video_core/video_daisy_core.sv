@@ -42,9 +42,6 @@ module video_daisy_core
 
     /*AUTOWIRE*/
 
-
-
-    localparam PIPELINE = 1;
     localparam SPRITE_HSIZE  = 32;
     localparam SPRITE_VSIZE  = 32;
     localparam SPRITE_RAM_AW = 10;
@@ -76,6 +73,9 @@ module video_daisy_core
     assign bar_core_src_frame.hc = fc_hcount;
     assign bar_core_src_frame.vc = fc_vcount;
     assign bar_core_src_frame.start = frame_start;
+    assign bar_core_src_frame.r = 0;
+    assign bar_core_src_frame.g = 0;
+    assign bar_core_src_frame.b = 0;
     assign bar_core_src_vld = frame_display;
 
     // --------------------------------

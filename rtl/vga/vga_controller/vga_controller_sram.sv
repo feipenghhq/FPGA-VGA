@@ -11,7 +11,7 @@
 `include "vga.svh"
 
 module vga_controller_sram #(
-    parameter AVN_AW    = 18,
+    parameter AVN_AW    = 19,
     parameter AVN_DW    = 16,
     parameter BUF_SIZE  = 16,
     parameter START_DELAY = 12
