@@ -79,18 +79,15 @@ module vga_controller_sram #(
     // Module Declaration
     // --------------------------------
 
-    /* vga_controller_framebuffer_1rw AUTO_TEMPLATE (
-      .vram_\(.*\)                  (sram_\1[]),
-    )
-    */
-    vga_controller_framebuffer_1rw
+
+    vga_controller_framebuffer
     #(/*AUTOINSTPARAM*/
       // Parameters
       .AVN_AW                           (AVN_AW),
       .AVN_DW                           (AVN_DW),
       .BUF_SIZE                         (BUF_SIZE),
       .START_DELAY                      (START_DELAY))
-    u_vga_controller_framebuffer_1rw
+    u_vga_controller_framebuffer
     (/*AUTOINST*/
      // Outputs
      .vga_r                             (vga_r[`R_SIZE-1:0]),

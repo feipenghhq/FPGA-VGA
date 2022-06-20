@@ -66,7 +66,7 @@ module de2_115_top (
     u_video_system_framebuffer_sram (
         .pixel_clk                          (VGA_CLK),
         .pixel_rst                          (pixel_rst),
-        .sys_clk                            (VGA_CLK),
+        .sys_clk                            (sys_clk),
         .sys_rst                            (sys_rst),
         .vga_r                              (vga_r),
         .vga_g                              (vga_g),

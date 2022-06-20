@@ -14,11 +14,10 @@ VERILOG 	+= $(COMMON)/vga_fifo.sv
 VERILOG 	+= $(COMMON)/vga_ram_1r1w.sv
 VERILOG 	+= $(COMMON)/vga_avn_mux.sv
 
-VERILOG 	+= $(VGA_CTRL)/vga_sync.sv
-VERILOG 	+= $(VGA_CTRL)/vga_controller_framebuffer.sv
 VERILOG 	+= $(VGA_CTRL)/vga_frame_counter.sv
-
-VERILOG 	+= $(VGA_CTRL)/vga_controller_framebuffer_1rw.sv
+VERILOG 	+= $(VGA_CTRL)/vga_sync.sv
+VERILOG 	+= $(VGA_CTRL)/vga_controller_framebuffer_core.sv
+VERILOG 	+= $(VGA_CTRL)/vga_controller_framebuffer.sv
 VERILOG 	+= $(VGA_CTRL)/vga_controller_sram.sv
 
 VERILOG 	+= $(VIDEO_CORE)/video_bar_core.sv
