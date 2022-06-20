@@ -44,26 +44,26 @@ set VGA_CLK "u_altpllvga|altpll_component|pll|clk[1]"
 # Set Input Delay
 #**************************************************************
 
-set_input_delay -clock sys_clk 10 [get_ports SRAM_DQ[*]]
+set_input_delay -clock $sys_clk 10 [get_ports SRAM_DQ[*]]
 
 #**************************************************************
 # Set Output Delay
 #**************************************************************
 
-set_output_delay -clock sys_clk 10 [get_ports SRAM_DQ[*] ]
-set_output_delay -clock sys_clk 10 [get_ports SRAM_ADDR[*] ]
-set_output_delay -clock sys_clk 10 [get_ports SRAM_UB_N ]
-set_output_delay -clock sys_clk 10 [get_ports SRAM_LB_N ]
-set_output_delay -clock sys_clk 10 [get_ports SRAM_WE_N ]
-set_output_delay -clock sys_clk 10 [get_ports SRAM_CE_N ]
-set_output_delay -clock sys_clk 10 [get_ports SRAM_OE_N ]
+set_output_delay -clock $sys_clk 10 [get_ports SRAM_DQ[*] ]
+set_output_delay -clock $sys_clk 10 [get_ports SRAM_ADDR[*] ]
+set_output_delay -clock $sys_clk 10 [get_ports SRAM_UB_N ]
+set_output_delay -clock $sys_clk 10 [get_ports SRAM_LB_N ]
+set_output_delay -clock $sys_clk 10 [get_ports SRAM_WE_N ]
+set_output_delay -clock $sys_clk 10 [get_ports SRAM_CE_N ]
+set_output_delay -clock $sys_clk 10 [get_ports SRAM_OE_N ]
 
 #**************************************************************
 # Set Clock Groups
 #**************************************************************
 
-set_clock_groups -asynchronous -group [get_clocks {sys_clk}]
-set_clock_groups -asynchronous -group [get_clocks {VGA_CLK}]
+set_clock_groups -asynchronous -group [get_clocks $sys_clk]
+set_clock_groups -asynchronous -group [get_clocks $VGA_CLK]
 set_clock_groups -asynchronous -group [get_clocks {CLOCK_50}]
 
 #**************************************************************

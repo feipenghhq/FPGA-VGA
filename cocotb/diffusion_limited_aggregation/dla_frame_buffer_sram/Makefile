@@ -10,7 +10,7 @@ PWD 	 = $(shell pwd)
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-include $(GIT_ROOT)/rtl/diffusion_limited_aggregation//makefile.dla_frame_buffer_sram.inc
+include $(GIT_ROOT)/rtl/projects/diffusion_limited_aggregation/makefile.dla_frame_buffer_sram.inc
 VERILOG_SOURCES += $(VERILOG)
 TOPLEVEL = dla_frame_buffer_sram
 
@@ -20,8 +20,7 @@ DUMP ?= 0
 COVR ?= 0
 
 ifeq ($(SIM),verilator)
-EXTRA_ARGS += -I$(GIT_ROOT)/rtl/common
-EXTRA_ARGS += -DVGA_640x400
+EXTRA_ARGS += -I$(GIT_ROOT)/rtl/include
 ifeq ($(COVR), 1)
 	EXTRA_ARGS += --coverage
 endif

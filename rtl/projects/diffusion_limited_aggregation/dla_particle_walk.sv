@@ -8,33 +8,33 @@
  * ---------------------------------------------------------------
  */
 
+`include "vga.svh"
+
 module dla_particle_walk #(
-    parameter AVN_AW    = 18,
-    parameter AVN_DW    = 16,
-    parameter HSIZE     = 640,
-    parameter VSIZE     = 480
+    parameter AVN_AW    = 19,
+    parameter AVN_DW    = 16
 ) (
-    input                       clk,
-    input                       rst,
+    input                   clk,
+    input                   rst,
 
-    input [$clog2(HSIZE)-1:0]   walk_init_x,
-    input [$clog2(VSIZE)-1:0]   walk_init_y,
-    input                       walk_start,
-    output logic                walk_done,
-    output logic                walk_valid,
+    input [`H_SIZE-1:0]     walk_init_x,
+    input [`V_SIZE-1:0]     walk_init_y,
+    input                   walk_start,
+    output logic            walk_done,
+    output logic            walk_valid,
 
-    output [AVN_AW-1:0]         vram_avn_address,
-    output logic                vram_avn_write,
-    output [AVN_DW-1:0]         vram_avn_writedata,
-    input                       vram_avn_waitrequest,
+    output [AVN_AW-1:0]     vram_avn_address,
+    output logic            vram_avn_write,
+    output [AVN_DW-1:0]     vram_avn_writedata,
+    input                   vram_avn_waitrequest,
 
     // check the particle
-    output [$clog2(HSIZE)-1:0]  check_x,
-    output [$clog2(VSIZE)-1:0]  check_y,
-    output logic                check_start,
-    input                       check_done,
-    input                       hit_boundary,
-    input                       hit_neighbor
+    output [`H_SIZE-1:0]    check_x,
+    output [`V_SIZE-1:0]    check_y,
+    output logic            check_start,
+    input                   check_done,
+    input                   hit_boundary,
+    input                   hit_neighbor
 );
 
     // --------------------------------
@@ -52,19 +52,17 @@ module dla_particle_walk #(
     logic [4:0] state_next;
 
 
-    reg [$clog2(HSIZE)-1:0]     cur_x;
-    reg [$clog2(VSIZE)-1:0]     cur_y;
-
-
-    logic                       move;
-    logic [$clog2(HSIZE)-1:0]   cur_x_next;
-    logic [$clog2(VSIZE)-1:0]   cur_y_next;
-    logic [$clog2(HSIZE)-1:0]   cur_x_minus_one;
-    logic [$clog2(HSIZE)-1:0]   cur_x_plus_one;
-    logic [$clog2(VSIZE)-1:0]   cur_y_minus_one;
-    logic [$clog2(VSIZE)-1:0]   cur_y_plus_one;
-    logic [LSFR_WIDTH-1:0]      lsfr_random;
-    logic [2:0]                 direction;
+    reg [`H_SIZE-1:0]       cur_x;
+    reg [`V_SIZE-1:0]       cur_y;
+    logic                   move;
+    logic [`H_SIZE-1:0]     cur_x_next;
+    logic [`V_SIZE-1:0]     cur_y_next;
+    logic [`H_SIZE-1:0]     cur_x_minus_one;
+    logic [`H_SIZE-1:0]     cur_x_plus_one;
+    logic [`V_SIZE-1:0]     cur_y_minus_one;
+    logic [`V_SIZE-1:0]     cur_y_plus_one;
+    logic [LSFR_WIDTH-1:0]  lsfr_random;
+    logic [2:0]             direction;
 
     // --------------------------------
     // Main logic
@@ -74,7 +72,7 @@ module dla_particle_walk #(
     assign check_y = cur_y;
 
     assign vram_avn_writedata = {AVN_DW{1'b1}};
-    assign vram_avn_address = {{(AVN_AW-$clog2(HSIZE)){1'b0}}, cur_x} + cur_y * HSIZE;
+    assign vram_avn_address = {{(AVN_AW-`H_SIZE){1'b0}}, cur_x} + cur_y * `H_DISPLAY;
 
     always @* begin
         walk_done = 0;

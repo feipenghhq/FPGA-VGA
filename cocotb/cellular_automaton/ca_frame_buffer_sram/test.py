@@ -40,4 +40,5 @@ async def setup(dut):
 async def sanity(dut):
     await setup(dut)
     dut.ca_rule.value = 4
+    dut.ca_start.value = 1
     await Timer(5000, units="us")

@@ -10,28 +10,28 @@
  * ---------------------------------------------------------------
  */
 
-module dla_particle_check #(
-    parameter AVN_AW    = 18,
-    parameter AVN_DW    = 16,
-    parameter HSIZE     = 640,
-    parameter VSIZE     = 480
-) (
-    input                       clk,
-    input                       rst,
+`include "vga.svh"
 
-    input [$clog2(HSIZE)-1:0]   check_x,
-    input [$clog2(VSIZE)-1:0]   check_y,
-    input                       check_start,
-    output logic                check_done,
-    output                      hit_boundary,
-    output logic                hit_neighbor,
+module dla_particle_check #(
+    parameter AVN_AW    = 19,
+    parameter AVN_DW    = 16
+) (
+    input                   clk,
+    input                   rst,
+
+    input [`H_SIZE-1:0]     check_x,
+    input [`V_SIZE-1:0]     check_y,
+    input                   check_start,
+    output logic            check_done,
+    output                  hit_boundary,
+    output logic            hit_neighbor,
 
     // vram avalon interface
-    output [AVN_AW-1:0]         vram_avn_address,
-    output                      vram_avn_read,
-    input  [AVN_DW-1:0]         vram_avn_readdata,
-    input                       vram_avn_waitrequest,
-    input                       vram_avn_readdatavalid
+    output [AVN_AW-1:0]     vram_avn_address,
+    output                  vram_avn_read,
+    input  [AVN_DW-1:0]     vram_avn_readdata,
+    input                   vram_avn_waitrequest,
+    input                   vram_avn_readdatavalid
 );
 
     // --------------------------------
@@ -43,29 +43,28 @@ module dla_particle_check #(
                S_READ  = 2,   // wait for the vram to get the read data back
                S_CHECK = 3,   // check the data
                S_BDR   = 4;   // hit the boundary
-    reg [4:0]                   state;
-    logic [4:0]                 state_next;
+    reg [4:0]             state;
+    logic [4:0]           state_next;
 
-    reg [AVN_DW-1:0]            vram_avn_readdata_s0;
-    reg [8:0]                   pos_counter_oh; // onehot counter to calculate the x, y coordinates
-
-    logic [2:0]                 offset_x;
-    logic [2:0]                 offset_y;
-    logic [$clog2(HSIZE)-1:0]   post_x;
-    logic [$clog2(VSIZE)-1:0]   post_y;
-    logic                       x_hit_boundary;
-    logic                       y_hit_boundary;
-    logic                       pos_counter_oh_shift;
+    reg [AVN_DW-1:0]      vram_avn_readdata_s0;
+    reg [8:0]             pos_counter_oh; // onehot counter to calculate the x, y coordinates
+    logic [2:0]           offset_x;
+    logic [2:0]           offset_y;
+    logic [`H_SIZE-1:0]   post_x;
+    logic [`V_SIZE-1:0]   post_y;
+    logic                 x_hit_boundary;
+    logic                 y_hit_boundary;
+    logic                 pos_counter_oh_shift;
 
     // --------------------------------
     // Main logic
     // --------------------------------
 
-    assign x_hit_boundary = (check_x == 0) | (check_x >= HSIZE-1);
-    assign y_hit_boundary = (check_y == 0) | (check_y >= VSIZE-1);
+    assign x_hit_boundary = (check_x == 0) | (check_x >= `H_DISPLAY-1);
+    assign y_hit_boundary = (check_y == 0) | (check_y >= `V_DISPLAY-1);
     assign hit_boundary = x_hit_boundary | y_hit_boundary;
     assign hit_neighbor = vram_avn_readdata_s0 == {AVN_DW{1'b1}};
-    assign vram_avn_address = {{(AVN_AW-$clog2(HSIZE)){1'b0}}, post_x} + post_y * HSIZE;
+    assign vram_avn_address = {{(AVN_AW-`H_SIZE){1'b0}}, post_x} + post_y * `H_DISPLAY;
 
     // check the timing to see if we need to register the address to improve timing
     /*

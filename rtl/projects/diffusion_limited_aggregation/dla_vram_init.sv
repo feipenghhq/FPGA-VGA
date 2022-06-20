@@ -5,14 +5,18 @@
  * Date Created: 05/25/2022
  * ---------------------------------------------------------------
  * Initialize the vram
+ *
+ * We need to clear the entire vram and add a seed in the middle
+ * of the screen.
+ *
  * ---------------------------------------------------------------
  */
 
+`include "vga.svh"
+
 module dla_vram_init #(
-    parameter AVN_AW    = 18,
-    parameter AVN_DW    = 16,
-    parameter HSIZE     = 640,
-    parameter VSIZE     = 480
+    parameter AVN_AW    = 19,
+    parameter AVN_DW    = 16
 ) (
     input                       clk,
     input                       rst,
@@ -55,7 +59,7 @@ module dla_vram_init #(
         vram_avn_write = 0;
         vram_avn_address = address;
 
-        clear_done = address == HSIZE * VSIZE - 1;
+        clear_done = address == `H_DISPLAY * `V_DISPLAY - 1;
         init_done = 0;
 
         state_next = 0;
@@ -96,7 +100,7 @@ module dla_vram_init #(
                 address <= 0;
             end
             else if (state_next[S_SET]) begin
-                address <= HSIZE / 2 + (VSIZE / 2) * HSIZE; // middle of the screen
+                address <= `H_DISPLAY / 2 + (`V_DISPLAY / 2) * `H_DISPLAY; // middle of the screen
             end
             else if (state[S_CLEAR] && !vram_avn_waitrequest) begin
                 address <= address + 1;

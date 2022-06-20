@@ -10,9 +10,10 @@ PWD 	 = $(shell pwd)
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-include $(GIT_ROOT)/rtl/cellular_automaton/makefile.ca_frame_buffer_sram.inc
+include $(GIT_ROOT)/rtl/projects/cellular_automaton/makefile.ca_frame_buffer_sram.inc
 VERILOG_SOURCES += $(VERILOG)
-TOPLEVEL = ca_frame_buffer_sram
+VERILOG_SOURCES += tb.sv
+TOPLEVEL = tb
 
 MODULE = test
 
@@ -20,7 +21,7 @@ DUMP ?= 0
 COVR ?= 0
 
 ifeq ($(SIM),verilator)
-EXTRA_ARGS += -I$(GIT_ROOT)/rtl/common
+EXTRA_ARGS += -I$(GIT_ROOT)/rtl/include
 EXTRA_ARGS += -DVGA_640x400
 ifeq ($(COVR), 1)
 	EXTRA_ARGS += --coverage
