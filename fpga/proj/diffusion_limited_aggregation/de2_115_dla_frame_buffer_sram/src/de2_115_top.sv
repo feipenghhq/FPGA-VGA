@@ -68,6 +68,7 @@ module de2_115_top (
         .pixel_rst                          (pixel_rst),
         .sys_clk                            (sys_clk),
         .sys_rst                            (sys_rst),
+        .dla_type                           (SW[0]),
         .vga_r                              (vga_r),
         .vga_g                              (vga_g),
         .vga_b                              (vga_b),

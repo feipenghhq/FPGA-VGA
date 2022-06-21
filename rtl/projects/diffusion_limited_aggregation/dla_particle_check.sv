@@ -4,7 +4,7 @@
  * Author: Heqing Huang
  * Date Created: 05/25/2022
  * ---------------------------------------------------------------
- * This module checks
+ * This module checks the status of the particale:
  *  1. If the particle hit the boundary
  *  2. If the particle is close to an existing particle
  * ---------------------------------------------------------------
@@ -27,7 +27,7 @@ module dla_particle_check #(
     output logic            hit_neighbor,
 
     // vram avalon interface
-    output [AVN_AW-1:0]     vram_avn_address,
+    output reg [AVN_AW-1:0] vram_avn_address,
     output                  vram_avn_read,
     input  [AVN_DW-1:0]     vram_avn_readdata,
     input                   vram_avn_waitrequest,
@@ -64,7 +64,7 @@ module dla_particle_check #(
     assign y_hit_boundary = (check_y == 0) | (check_y >= `V_DISPLAY-1);
     assign hit_boundary = x_hit_boundary | y_hit_boundary;
     assign hit_neighbor = vram_avn_readdata_s0 == {AVN_DW{1'b1}};
-    assign vram_avn_address = {{(AVN_AW-`H_SIZE){1'b0}}, post_x} + post_y * `H_DISPLAY;
+
 
     // check the timing to see if we need to register the address to improve timing
     /*
@@ -118,6 +118,7 @@ module dla_particle_check #(
 
             state[S_REQ]: begin
                 vram_avn_read = 1;
+                pos_counter_oh_shift = !vram_avn_waitrequest;   // advance the address
                 if (!vram_avn_waitrequest)
                                 state_next[S_READ] = 1;
                 else            state_next[S_REQ] = 1;
@@ -132,7 +133,6 @@ module dla_particle_check #(
             state[S_CHECK]: begin
                 // if we hit neighbor or we have checked all of the position then we are check_done
                 check_done = hit_neighbor | pos_counter_oh[8];
-                pos_counter_oh_shift = 1;
                 if (check_done) state_next[S_IDLE] = 1;
                 else            state_next[S_REQ] = 1;
             end
@@ -147,18 +147,19 @@ module dla_particle_check #(
     always @(posedge clk) begin
         if (rst) begin
             state <= 1;
-            pos_counter_oh = 1;
+            pos_counter_oh <= 1;
         end
         else begin
             state <= state_next;
             if (pos_counter_oh_shift) begin
-                pos_counter_oh = {pos_counter_oh[7:0], pos_counter_oh[8]};
+                pos_counter_oh <= {pos_counter_oh[7:0], pos_counter_oh[8]};
             end
         end
     end
 
     always @(posedge clk) begin
         vram_avn_readdata_s0 <= vram_avn_readdata;
+        vram_avn_address <= {{(AVN_AW-`H_SIZE){1'b0}}, post_x} + post_y * `H_DISPLAY;
     end
 
 

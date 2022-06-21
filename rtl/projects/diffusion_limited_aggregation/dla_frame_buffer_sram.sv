@@ -6,6 +6,15 @@
  * ---------------------------------------------------------------
  * difussion limited aggregation using SRAM frame buffer
  * ---------------------------------------------------------------
+ * 06/20/2022:
+ *
+ * To increase the speed of the process, we dvidie the design to
+ * 2 clock domain: sys clock domain and pixel clock domain.
+ *
+ * - The dla logic is in sys clock and it can run as fast as possible.
+ * - The vga control logic and frame buffer is in pixel clock domain.
+ *   It runs at 25MHz
+ * ---------------------------------------------------------------
  */
 
 `include "vga.svh"
@@ -20,6 +29,8 @@ module dla_frame_buffer_sram #(
 
     input                   sys_clk,
     input                   sys_rst,
+
+    input                   dla_type,
 
     // vga interface
     output  [`R_SIZE-1:0]   vga_r,
@@ -37,7 +48,7 @@ module dla_frame_buffer_sram #(
     inout  [AVN_DW-1:0]     sram_dq
 );
 
-    localparam N = 1000;
+    localparam N = 20000;
 
     // --------------------------------
     // Signal declarations
@@ -47,62 +58,62 @@ module dla_frame_buffer_sram #(
 
     /*AUTOWIRE*/
 
-    logic [AVN_AW-1:0]   sram_avn_address;
-    logic [AVN_DW/8-1:0] sram_avn_byteenable;
-    logic                sram_avn_read;
-    logic [AVN_DW-1:0]   sram_avn_readdata;
-    logic                sram_avn_write;
-    logic [AVN_DW-1:0]   sram_avn_writedata;
-
     logic                framebuffer_avn_waitrequest;
     logic [AVN_AW-1:0]   framebuffer_avn_address;
     logic [AVN_DW-1:0]   framebuffer_avn_writedata;
-    logic [AVN_DW-1:0]   framebuffer_avn_readdata;
     logic                framebuffer_avn_write;
-    logic                framebuffer_avn_read;
-    logic                framebuffer_avn_readdatavalid;
+
+    logic                dla_avn_waitrequest;
+    logic [AVN_AW-1:0]   dla_avn_address;
+    logic [AVN_DW-1:0]   dla_avn_writedata;
+    logic                dla_avn_write;
+
+    logic                cdc_fifo_full;
+    logic                cdc_fifo_empty;
+    logic                cdc_fifo_read;
+    logic                cdc_fifo_write;
+
+    logic [AVN_AW+AVN_DW-1:0] cdc_fifo_din;
+    logic [AVN_AW+AVN_DW-1:0] cdc_fifo_dout;
 
     // --------------------------------
     // Main logic
     // --------------------------------
 
+    assign dla_avn_waitrequest = cdc_fifo_full;
+    assign cdc_fifo_write = dla_avn_write & ~dla_avn_waitrequest;
+    assign cdc_fifo_din = {dla_avn_address, dla_avn_writedata};
+
+    assign cdc_fifo_read = ~cdc_fifo_empty & ~framebuffer_avn_waitrequest;
+    assign {framebuffer_avn_address, framebuffer_avn_writedata} = cdc_fifo_dout;
+    assign framebuffer_avn_write = cdc_fifo_read;
 
     // --------------------------------
     // Module Declaration
     // --------------------------------
 
-    /* dla_simulate AUTO_TEMPLATE (
-      .vram_\(.*\)  (src_\1[]),
-      .clk          (sys_clk),
-      .rst          (sys_rst),
-    )
-    */
     dla_simulate
-    #(/*AUTOINSTPARAM*/
-      // Parameters
+    #(
       .N                                (N),
       .AVN_AW                           (AVN_AW),
       .AVN_DW                           (AVN_DW))
     u_dla_simulate
-    (/*AUTOINST*/
-     // Outputs
-     .vram_avn_address                  (framebuffer_avn_address[AVN_AW-1:0]), // Templated
-     .vram_avn_write                    (framebuffer_avn_write),         // Templated
-     .vram_avn_read                     (framebuffer_avn_read),          // Templated
-     .vram_avn_writedata                (framebuffer_avn_writedata[AVN_DW-1:0]), // Templated
-     // Inputs
+    (
      .clk                               (sys_clk),
      .rst                               (sys_rst),
-     .vram_avn_waitrequest              (framebuffer_avn_waitrequest),   // Templated
-     .vram_avn_readdata                 (framebuffer_avn_readdata[AVN_DW-1:0]), // Templated
-     .vram_avn_readdatavalid            (framebuffer_avn_readdatavalid)); // Templated
+     .dla_type                          (dla_type),
+     .dla_avn_address                   (dla_avn_address),
+     .dla_avn_write                     (dla_avn_write),
+     .dla_avn_writedata                 (dla_avn_writedata),
+     .dla_avn_waitrequest               (dla_avn_waitrequest)
+    );
 
-
+    // Both the sys_clk and the pixel_clk are pixel_clk here.
     vga_controller_sram
     u_vga_controller_sram
     (
-     .sys_clk                           (sys_clk),
-     .sys_rst                           (sys_rst),
+     .sys_clk                           (pixel_clk),
+     .sys_rst                           (pixel_rst),
      .pixel_clk                         (pixel_clk),
      .pixel_rst                         (pixel_rst),
      .vga_r                             (vga_r),
@@ -110,13 +121,13 @@ module dla_frame_buffer_sram #(
      .vga_b                             (vga_b),
      .vga_hsync                         (vga_hsync),
      .vga_vsync                         (vga_vsync),
-     .framebuffer_avn_read              (framebuffer_avn_read),
+     .framebuffer_avn_read              (1'b0),
      .framebuffer_avn_write             (framebuffer_avn_write),
      .framebuffer_avn_address           (framebuffer_avn_address),
      .framebuffer_avn_writedata         (framebuffer_avn_writedata),
      .framebuffer_avn_byteenable        ({AVN_DW/8{1'b1}}),
-     .framebuffer_avn_readdata          (framebuffer_avn_readdata),
-     .framebuffer_avn_readdatavalid     (framebuffer_avn_readdatavalid),
+     .framebuffer_avn_readdata          (),
+     .framebuffer_avn_readdatavalid     (),
      .framebuffer_avn_waitrequest       (framebuffer_avn_waitrequest),
      .sram_ce_n                         (sram_ce_n),
      .sram_oe_n                         (sram_oe_n),
@@ -125,6 +136,25 @@ module dla_frame_buffer_sram #(
      .sram_addr                         (sram_addr),
      .sram_dq                           (sram_dq)
     );
+
+  vga_async_fifo_fwft #(
+     .WIDTH (AVN_AW+AVN_DW),
+     .DEPTH (32)
+  )
+  u_vga_cdc_fifo_fwft
+  (
+    .rst_rd   (pixel_rst),
+    .clk_rd   (pixel_clk),
+    .read     (cdc_fifo_read),
+    .dout     (cdc_fifo_dout),
+    .empty    (cdc_fifo_empty),
+    .rst_wr   (sys_rst),
+    .clk_wr   (sys_clk),
+    .din      (cdc_fifo_din),
+    .write    (cdc_fifo_write),
+    .full     (cdc_fifo_full),
+    .afull    ()
+);
 
 endmodule
 

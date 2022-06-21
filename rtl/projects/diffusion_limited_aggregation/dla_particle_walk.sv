@@ -4,7 +4,8 @@
  * Author: Heqing Huang
  * Date Created: 05/25/2022
  * ---------------------------------------------------------------
- * This module walks a random particle
+ * This module performs a random walk for a particle till it hits
+ * a neighbor or the boundary.
  * ---------------------------------------------------------------
  */
 
@@ -23,7 +24,7 @@ module dla_particle_walk #(
     output logic            walk_done,
     output logic            walk_valid,
 
-    output [AVN_AW-1:0]     vram_avn_address,
+    output reg [AVN_AW-1:0] vram_avn_address,
     output logic            vram_avn_write,
     output [AVN_DW-1:0]     vram_avn_writedata,
     input                   vram_avn_waitrequest,
@@ -72,7 +73,7 @@ module dla_particle_walk #(
     assign check_y = cur_y;
 
     assign vram_avn_writedata = {AVN_DW{1'b1}};
-    assign vram_avn_address = {{(AVN_AW-`H_SIZE){1'b0}}, cur_x} + cur_y * `H_DISPLAY;
+
 
     always @* begin
         walk_done = 0;
@@ -184,6 +185,9 @@ module dla_particle_walk #(
     end
 
     always @(posedge clk) begin
+
+        vram_avn_address <= {{(AVN_AW-`H_SIZE){1'b0}}, cur_x} + cur_y * `H_DISPLAY;
+
         if (walk_start && state[S_IDLE]) begin
             cur_x <= walk_init_x;
             cur_y <= walk_init_y;

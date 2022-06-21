@@ -4,10 +4,10 @@
  * Author: Heqing Huang
  * Date Created: 05/25/2022
  * ---------------------------------------------------------------
- * Initialize the vram
+ * Initialize the memory for DLA
  *
- * We need to clear the entire vram and add a seed in the middle
- * of the screen.
+ * 1. Clear the entire screen to black.
+ * 2. Add the initial seed to the screen.
  *
  * ---------------------------------------------------------------
  */
@@ -21,6 +21,7 @@ module dla_vram_init #(
     input                       clk,
     input                       rst,
 
+    input                       init_type, // 0 = snowflake, 1 = forest
     input                       init_start,
     output logic                init_done,
 
@@ -37,21 +38,25 @@ module dla_vram_init #(
     // --------------------------------
 
     localparam  S_IDLE  = 0,
-                S_CLEAR = 1,
-                S_SET   = 2,
+                S_CLEAR = 1,    // clear the screen
+                S_SET   = 2,    // add the initial seed to the screen
                 S_DONE  = 3;
     reg [3:0]   state;
     logic [3:0] state_next;
 
-
     reg [AVN_AW-1:0] address;
+    reg [AVN_AW-1:0] h_count;
 
     logic clear_done;
+    logic set_done;
+    logic h_count_fire;
 
     // --------------------------------
     // Main logic
     // --------------------------------
 
+    assign h_count_fire =  (h_count == `H_DISPLAY-1);
+    assign set_done = init_type ? h_count_fire : 1;
 
     always @* begin
 
@@ -70,16 +75,14 @@ module dla_vram_init #(
             end
             state[S_CLEAR]: begin
                 vram_avn_write = 1;
-                if (clear_done & !vram_avn_waitrequest)
-                                state_next[S_SET] = 1;
-                else            state_next[S_CLEAR] = 1;
+                if (clear_done & !vram_avn_waitrequest) state_next[S_SET] = 1;
+                else                                    state_next[S_CLEAR] = 1;
             end
             state[S_SET]: begin
                 vram_avn_write = 1;
                 vram_avn_writedata = {AVN_DW{1'b1}};
-                if (!vram_avn_waitrequest)
-                                state_next[S_DONE] = 1;
-                else            state_next[S_SET] = 1;
+                if (set_done && !vram_avn_waitrequest)  state_next[S_DONE] = 1;
+                else                                    state_next[S_SET] = 1;
             end
             state[S_DONE]: begin
                 init_done = 1;
@@ -91,20 +94,30 @@ module dla_vram_init #(
     always @(posedge clk) begin
         if (rst) begin
             address <= 0;
+            h_count <= 0;
             state <= 1;
         end
         else begin
             state <= state_next;
 
-            if (state_next[S_IDLE]) begin
+            if (state[S_IDLE]) begin
                 address <= 0;
             end
             else if (state_next[S_SET]) begin
-                address <= `H_DISPLAY / 2 + (`V_DISPLAY / 2) * `H_DISPLAY; // middle of the screen
+                // snowflake, add an particle at the middle of the screen
+                if (!init_type) begin
+                    address <= `H_DISPLAY / 2 + (`V_DISPLAY / 2) * `H_DISPLAY;
+                end
+                // forest, initialize the bottom of the screen
+                else begin
+                    if (!vram_avn_waitrequest) h_count <= h_count + 1;
+                    address <= h_count + (`V_DISPLAY - 1) * `H_DISPLAY;
+                end
             end
             else if (state[S_CLEAR] && !vram_avn_waitrequest) begin
                 address <= address + 1;
             end
+
         end
     end
 

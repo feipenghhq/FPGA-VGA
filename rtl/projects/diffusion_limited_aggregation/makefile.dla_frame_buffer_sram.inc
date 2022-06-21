@@ -8,8 +8,9 @@ DLA          = $(GIT_ROOT)/rtl/projects/diffusion_limited_aggregation
 
 VERILOG 	+= $(COMMON)/vga_dsync.sv
 VERILOG 	+= $(COMMON)/vga_async_fifo.sv
+VERILOG 	+= $(COMMON)/vga_async_fifo_fwft.sv
 VERILOG 	+= $(COMMON)/vga_fifo.sv
-VERILOG 	+= $(COMMON)/vga_ram_1r1w.sv
+VERILOG 	+= $(COMMON)/vga_ram_1rw.sv
 VERILOG 	+= $(COMMON)/vga_avn_mux.sv
 
 VERILOG 	+= $(VGA_CTRL)/vga_frame_counter.sv

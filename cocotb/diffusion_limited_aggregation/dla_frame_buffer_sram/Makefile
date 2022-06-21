@@ -12,7 +12,8 @@ TOPLEVEL_LANG ?= verilog
 
 include $(GIT_ROOT)/rtl/projects/diffusion_limited_aggregation/makefile.dla_frame_buffer_sram.inc
 VERILOG_SOURCES += $(VERILOG)
-TOPLEVEL = dla_frame_buffer_sram
+VERILOG_SOURCES += tb.sv
+TOPLEVEL = tb
 
 MODULE = test
 

@@ -4,7 +4,15 @@
  * Author: Heqing Huang
  * Date Created: 05/25/2022
  * ---------------------------------------------------------------
- * This module simulate the dla
+ * This module does the entire simulation of the dla.
+ *
+ * 1. Initialize the sreen (memory)
+ * 2. Randonly generate a particle
+ * 3. Walk the particle.
+ * 4. Repeat steps 2 & 3 till we have generated N particles.
+ * ---------------------------------------------------------------
+ * 06/20/2022:
+ * Added a bram to store the dla pattern to speed up the process
  * ---------------------------------------------------------------
  */
 
@@ -17,14 +25,11 @@ module dla_simulate #(
 ) (
     input                       clk,
     input                       rst,
-
-    output [AVN_AW-1:0]         vram_avn_address,
-    output                      vram_avn_write,
-    output                      vram_avn_read,
-    output [AVN_DW-1:0]         vram_avn_writedata,
-    input                       vram_avn_waitrequest,
-    input [AVN_DW-1:0]          vram_avn_readdata,
-    input                       vram_avn_readdatavalid
+    input                       dla_type,
+    output [AVN_AW-1:0]         dla_avn_address,
+    output                      dla_avn_write,
+    output [AVN_DW-1:0]         dla_avn_writedata,
+    input                       dla_avn_waitrequest
 );
 
     // --------------------------------
@@ -32,13 +37,11 @@ module dla_simulate #(
     // --------------------------------
 
     localparam LSFR_WIDTH = 16;
+    localparam N_SIZE = $clog2(N);
 
     /*AUTOWIRE*/
 
     /*AUTOREG*/
-
-    /*AUTOREGINPUT*/
-
 
     localparam S_IDLE   = 0,    // IDLE state
                S_INIT   = 1,    // Initialize the vram
@@ -49,18 +52,18 @@ module dla_simulate #(
     reg [5:0]   state;
     logic [5:0] state_next;
 
-    reg [$clog2(N)-1:0]     par_count;
+    reg [N_SIZE-1:0]        par_count;
 
     logic                   init_start;
     logic                   init_done;
     logic                   init_vram_avn_waitrequest;
     logic [AVN_AW-1:0]      init_vram_avn_address;
     logic                   init_vram_avn_write;
-    logic [AVN_DW-1:0]      init_vram_avn_writedata;
+    logic                   init_vram_avn_writedata;
 
     logic                   check_done;
     logic                   check_start;
-    logic [AVN_DW-1:0]      check_vram_avn_readdata;
+    logic                   check_vram_avn_readdata;
     logic                   check_vram_avn_readdatavalid;
     logic                   check_vram_avn_waitrequest;
     logic [AVN_AW-1:0]      check_vram_avn_address;
@@ -79,19 +82,29 @@ module dla_simulate #(
     logic                   walk_valid;
     logic [AVN_AW-1:0]      walk_vram_avn_address;
     logic                   walk_vram_avn_write;
-    logic [AVN_DW-1:0]      walk_vram_avn_writedata;
+    logic                   walk_vram_avn_writedata;
     logic                   walk_vram_avn_waitrequest;
 
     logic [LSFR_WIDTH-1:0]  lsfr_x;
     logic [LSFR_WIDTH-1:0]  lsfr_y;
     logic                   sim_done;
 
+    logic [AVN_AW-1:0]      vram_avn_address;
+    logic                   vram_avn_write;
+    logic                   vram_avn_read;
+    logic                   vram_avn_writedata;
+    logic                   vram_avn_waitrequest;
+    logic                   vram_avn_readdata;
+    logic                   vram_avn_readdatavalid;
+
     // --------------------------------
     // Main logic
     // --------------------------------
 
+    assign vram_avn_waitrequest = dla_avn_waitrequest;
     assign init_vram_avn_waitrequest = vram_avn_waitrequest;
     assign walk_vram_avn_waitrequest = vram_avn_waitrequest;
+
     assign check_vram_avn_readdata = vram_avn_readdata;
     assign check_vram_avn_readdatavalid = vram_avn_readdatavalid;
     assign check_vram_avn_waitrequest = vram_avn_waitrequest;
@@ -106,6 +119,10 @@ module dla_simulate #(
     assign vram_avn_address = init_vram_avn_write ? init_vram_avn_address :
                               walk_vram_avn_write ? walk_vram_avn_address : check_vram_avn_address;
     assign vram_avn_writedata = init_vram_avn_write ? init_vram_avn_writedata : walk_vram_avn_writedata;
+
+    assign dla_avn_address = vram_avn_address;
+    assign dla_avn_write = vram_avn_write;
+    assign dla_avn_writedata = {AVN_DW{vram_avn_writedata}};
 
     always @* begin
 
@@ -143,9 +160,11 @@ module dla_simulate #(
         if (rst) begin
             state <= 1;
             par_count <= N;
+            vram_avn_readdatavalid <= 0;
         end
         else begin
             state <= state_next;
+            vram_avn_readdatavalid <= vram_avn_read;
             if (walk_valid) par_count <= par_count - 1;
         end
     end
@@ -155,88 +174,80 @@ module dla_simulate #(
     // Module initialization
     // --------------------------------
 
-    /* dla_vram_init AUTO_TEMPLATE (
-        .vram_\(.*\)     (init_vram_\1[]),
-    )
-    */
     dla_vram_init
-    #(/*AUTOINSTPARAM*/
-      // Parameters
+    #(
       .AVN_AW                           (AVN_AW),
-      .AVN_DW                           (AVN_DW))
+      .AVN_DW                           (1))
     u_dla_vram_init
-    (/*AUTOINST*/
-     // Outputs
-     .init_done                         (init_done),
-     .vram_avn_address                  (init_vram_avn_address[AVN_AW-1:0]), // Templated
-     .vram_avn_write                    (init_vram_avn_write),   // Templated
-     .vram_avn_writedata                (init_vram_avn_writedata[AVN_DW-1:0]), // Templated
-     // Inputs
+    (
      .clk                               (clk),
      .rst                               (rst),
+     .init_type                         (dla_type),
      .init_start                        (init_start),
-     .vram_avn_waitrequest              (init_vram_avn_waitrequest)); // Templated
+     .init_done                         (init_done),
+     .vram_avn_address                  (init_vram_avn_address),
+     .vram_avn_write                    (init_vram_avn_write),
+     .vram_avn_writedata                (init_vram_avn_writedata),
+     .vram_avn_waitrequest              (init_vram_avn_waitrequest));
 
 
-    /* dla_particle_check AUTO_TEMPLATE (
-        .vram_\(.*\)     (check_vram_\1[]),
-    )
-    */
     dla_particle_check
-    #(/*AUTOINSTPARAM*/
-      // Parameters
+    #(
       .AVN_AW                           (AVN_AW),
-      .AVN_DW                           (AVN_DW))
+      .AVN_DW                           (1))
     u_dla_particle_check
-    (/*AUTOINST*/
-     // Outputs
+    (
+     .clk                               (clk),
+     .rst                               (rst),
+     .check_x                           (check_x),
+     .check_y                           (check_y),
+     .check_start                       (check_start),
      .check_done                        (check_done),
      .hit_boundary                      (hit_boundary),
      .hit_neighbor                      (hit_neighbor),
-     .vram_avn_address                  (check_vram_avn_address[AVN_AW-1:0]), // Templated
-     .vram_avn_read                     (check_vram_avn_read),   // Templated
-     // Inputs
+     .vram_avn_address                  (check_vram_avn_address),
+     .vram_avn_read                     (check_vram_avn_read),
+     .vram_avn_readdata                 (check_vram_avn_readdata),
+     .vram_avn_waitrequest              (check_vram_avn_waitrequest),
+     .vram_avn_readdatavalid            (check_vram_avn_readdatavalid));
+
+
+
+    dla_particle_walk
+    #(
+      .AVN_AW                           (AVN_AW),
+      .AVN_DW                           (1))
+    u_dla_particle_walk
+    (
      .clk                               (clk),
      .rst                               (rst),
-     .check_x                           (check_x[`H_SIZE-1:0]),
-     .check_y                           (check_y[`V_SIZE-1:0]),
-     .check_start                       (check_start),
-     .vram_avn_readdata                 (check_vram_avn_readdata[AVN_DW-1:0]), // Templated
-     .vram_avn_waitrequest              (check_vram_avn_waitrequest), // Templated
-     .vram_avn_readdatavalid            (check_vram_avn_readdatavalid)); // Templated
-
-
-    /* dla_particle_walk AUTO_TEMPLATE (
-        .vram_\(.*\)     (walk_vram_\1[]),
-    )
-    */
-    dla_particle_walk
-    #(/*AUTOINSTPARAM*/
-      // Parameters
-      .AVN_AW                           (AVN_AW),
-      .AVN_DW                           (AVN_DW))
-    u_dla_particle_walk
-    (/*AUTOINST*/
-     // Outputs
+     .walk_init_x                       (walk_init_x),
+     .walk_init_y                       (walk_init_y),
+     .walk_start                        (walk_start),
      .walk_done                         (walk_done),
      .walk_valid                        (walk_valid),
-     .vram_avn_address                  (walk_vram_avn_address[AVN_AW-1:0]), // Templated
-     .vram_avn_write                    (walk_vram_avn_write),   // Templated
-     .vram_avn_writedata                (walk_vram_avn_writedata[AVN_DW-1:0]), // Templated
-     .check_x                           (check_x[`H_SIZE-1:0]),
+     .vram_avn_address                  (walk_vram_avn_address),
+     .vram_avn_write                    (walk_vram_avn_write),
+     .vram_avn_writedata                (walk_vram_avn_writedata),
+     .vram_avn_waitrequest              (walk_vram_avn_waitrequest),
+     .check_x                           (check_x),
      .check_y                           (check_y[`V_SIZE-1:0]),
      .check_start                       (check_start),
-     // Inputs
-     .clk                               (clk),
-     .rst                               (rst),
-     .walk_init_x                       (walk_init_x[`H_SIZE-1:0]),
-     .walk_init_y                       (walk_init_y[`V_SIZE-1:0]),
-     .walk_start                        (walk_start),
-     .vram_avn_waitrequest              (walk_vram_avn_waitrequest), // Templated
      .check_done                        (check_done),
      .hit_boundary                      (hit_boundary),
      .hit_neighbor                      (hit_neighbor));
 
+    vga_ram_1rw #(
+      .AW       (AVN_AW),
+      .DW       (1)
+    )
+    u_dla_ram (
+      .clk      (clk),
+      .we       (vram_avn_write),
+      .addr     (vram_avn_address),
+      .din      (vram_avn_writedata),
+      .dout     (vram_avn_readdata)
+    );
 
     dla_lsfr
     #(
