@@ -38,7 +38,7 @@ set VGA_CLK "u_altpllvga|altpll_component|pll|clk[1]"
 # Set Clock Uncertainty
 #**************************************************************
 
-
+derive_clock_uncertainty
 
 #**************************************************************
 # Set Input Delay

@@ -4,7 +4,7 @@ SRAM         = $(GIT_ROOT)/ip/sram
 COMMON       = $(GIT_ROOT)/rtl/common
 VGA_CTRL     = $(GIT_ROOT)/rtl/vga/vga_controller
 VIDEO_CORE   = $(GIT_ROOT)/rtl/vga/video_core
-MANDBORT     = $(GIT_ROOT)/rtl/projects/mandbort_set
+MANDEL       = $(GIT_ROOT)/rtl/projects/mandelbrot_set
 
 VERILOG 	+= $(SRAM)/avalon_sram_controller.sv
 
@@ -20,7 +20,10 @@ VERILOG 	+= $(VGA_CTRL)/vga_controller_framebuffer_core.sv
 VERILOG 	+= $(VGA_CTRL)/vga_controller_framebuffer.sv
 VERILOG 	+= $(VGA_CTRL)/vga_controller_sram.sv
 
-VERILOG 	+= $(MANDBORT)/mandbort_cal_core.sv
-VERILOG 	+= $(MANDBORT)/mandbort_cal_cluster.sv
-VERILOG 	+= $(MANDBORT)/mandbort_core.sv
-VERILOG 	+= $(MANDBORT)/mandbort_framebuffer_sram.sv
+VERILOG 	+= $(MANDEL)/mandelbrot_multiplier.sv
+VERILOG 	+= $(MANDEL)/mandelbrot_solver.sv
+VERILOG 	+= $(MANDEL)/mandelbrot_engine.sv
+VERILOG 	+= $(MANDEL)/mandelbrot_coloring.sv
+VERILOG 	+= $(MANDEL)/mandelbrot_engine_colored.sv
+VERILOG 	+= $(MANDEL)/mandelbrot_render.sv
+VERILOG 	+= $(MANDEL)/mandelbrot_framebuffer_sram.sv

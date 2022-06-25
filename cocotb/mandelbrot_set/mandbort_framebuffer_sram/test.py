@@ -39,8 +39,9 @@ async def setup(dut):
 @cocotb.test()
 async def sanity(dut):
     await setup(dut)
+    dut.max_iteration.value = 1000
     await Timer(100, units="ns")
     dut.start.value = 1
     await Timer(20, units="ns")
     dut.start.value = 0
-    await Timer(20000, units="us")
+    await Timer(2000, units="us")

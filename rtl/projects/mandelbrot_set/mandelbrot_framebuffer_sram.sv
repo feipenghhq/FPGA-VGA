@@ -10,9 +10,10 @@
 
 `include "vga.svh"
 
-module mandbort_framebuffer_sram #(
+module mandelbrot_framebuffer_sram #(
     parameter AVN_AW   = 19,
-    parameter AVN_DW   = 16
+    parameter AVN_DW   = 16,
+    parameter ITERW    = 16
 ) (
     // clock
     input                   pixel_clk,
@@ -20,7 +21,7 @@ module mandbort_framebuffer_sram #(
 
     input                   sys_clk,
     input                   sys_rst,
-
+    input [ITERW-1:0]       max_iteration,
     input                   start,
 
     // vga interface
@@ -52,27 +53,39 @@ module mandbort_framebuffer_sram #(
     logic [AVN_DW-1:0]   framebuffer_avn_writedata;
     logic                framebuffer_avn_write;
 
+    logic                mandelbrot_avn_waitrequest;
+    logic [AVN_AW-1:0]   mandelbrot_avn_address;
+    logic [AVN_DW-1:0]   mandelbrot_avn_writedata;
+    logic                mandelbrot_avn_write;
+
+    logic                buffer_empty;
+
     // --------------------------------
     // Main logic
     // --------------------------------
 
+    assign framebuffer_avn_write = mandelbrot_avn_write;
+    assign framebuffer_avn_writedata = mandelbrot_avn_writedata;
+    assign framebuffer_avn_address = mandelbrot_avn_address;
+    assign mandelbrot_avn_waitrequest = framebuffer_avn_waitrequest;
 
     // --------------------------------
     // Module Declaration
     // --------------------------------
 
-    mandbort_core #(
-      .AVN_AW                   (AVN_AW),
-      .AVN_DW                   (AVN_DW))
-    u_mandbort_core
+    mandelbrot_render #(
+      .AVN_AW                     (AVN_AW),
+      .AVN_DW                     (AVN_DW))
+    u_mandelbrot_render
     (
-      .clk                      (sys_clk),
-      .rst                      (sys_rst),
-      .start                    (start),
-      .mandbort_avn_address     (framebuffer_avn_address),
-      .mandbort_avn_write       (framebuffer_avn_write),
-      .mandbort_avn_writedata   (framebuffer_avn_writedata),
-      .mandbort_avn_waitrequest (framebuffer_avn_waitrequest)
+      .clk                        (sys_clk),
+      .rst                        (sys_rst),
+      .max_iteration              (max_iteration),
+      .start                      (start),
+      .mandelbrot_avn_address     (mandelbrot_avn_address),
+      .mandelbrot_avn_write       (mandelbrot_avn_write),
+      .mandelbrot_avn_writedata   (mandelbrot_avn_writedata),
+      .mandelbrot_avn_waitrequest (mandelbrot_avn_waitrequest)
     );
 
     vga_controller_sram

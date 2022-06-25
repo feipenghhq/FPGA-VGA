@@ -10,7 +10,7 @@ PWD 	 = $(shell pwd)
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 
-include $(GIT_ROOT)/rtl/projects/mandbort_set/makefile.mandbort_framebuffer_sram.inc
+include $(GIT_ROOT)/rtl/projects/mandelbrot_set/makefile.mandelbrot_framebuffer_sram.inc
 VERILOG_SOURCES += $(VERILOG)
 VERILOG_SOURCES += tb.sv
 TOPLEVEL = tb

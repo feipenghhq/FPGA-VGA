@@ -62,8 +62,8 @@ module de2_115_top (
         .c1     (VGA_CLK)
     );
 
-    mandbort_framebuffer_sram
-    u_mandbort_framebuffer_sram (
+    mandelbrot_framebuffer_sram
+    u_mandelbrot_framebuffer_sram (
         .pixel_clk                          (VGA_CLK),
         .pixel_rst                          (pixel_rst),
         .sys_clk                            (sys_clk),
@@ -73,6 +73,7 @@ module de2_115_top (
         .vga_b                              (vga_b),
         .vga_hsync                          (VGA_HS),
         .vga_vsync                          (VGA_VS),
+        .max_iteration                      ('d20000),
         .start                              (~KEY[0]),
         .sram_addr                          (SRAM_ADDR),
         .sram_dq                            (SRAM_DQ),

@@ -3,7 +3,8 @@
 
 module tb #(
     parameter SRAM_AW   = 19,   // SRAM address width
-    parameter SRAM_DW   = 16    // SRAM data width
+    parameter SRAM_DW   = 16,   // SRAM data width
+    parameter ITERW     = 16
 ) (
     // clock
     input                   pixel_clk,
@@ -13,6 +14,7 @@ module tb #(
     input                   sys_rst,
 
     input                   start,
+    input [ITERW-1:0]       max_iteration,
 
     // vga interface
     output  [`R_SIZE-1:0]   vga_r,
@@ -35,7 +37,7 @@ module tb #(
 
 
 
-    mandbort_framebuffer_sram u_mandbort_framebuffer_sram(.*);
+    mandelbrot_framebuffer_sram u_mandelbrot_framebuffer_sram(.*);
     sdram_model u_sdram_model(.*);
 
 

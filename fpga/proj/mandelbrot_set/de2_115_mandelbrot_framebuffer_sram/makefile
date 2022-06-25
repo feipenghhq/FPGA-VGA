@@ -6,10 +6,10 @@
 GIT_ROOT = $(shell git rev-parse --show-toplevel)
 PWD		 = $(shell pwd)
 
-PROJECT  = mandbort
+PROJECT  = mandelbrot
 TOP		 = de2_115_top
 
-include $(GIT_ROOT)/rtl/projects/mandbort_set/makefile.mandbort_framebuffer_sram.inc
+include $(GIT_ROOT)/rtl/projects/mandelbrot_set/makefile.mandelbrot_framebuffer_sram.inc
 VERILOG  	+= $(PWD)/src/altpllvga.v
 VERILOG  	+= $(PWD)/src/de2_115_top.sv
 SEARCH   	+= $(GIT_ROOT)/rtl/include

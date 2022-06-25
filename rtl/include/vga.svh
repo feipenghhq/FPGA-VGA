@@ -21,11 +21,19 @@
 `define PIXELS      (`H_DISPLAY * `V_DISPLAY)
 `define PIXELS_SIZE ($clog2(`PIXELS))
 
-
 // RGN color size
+`ifndef R_SIZE
 `define R_SIZE      4
+`endif
+
+`ifndef G_SIZE
 `define G_SIZE      4
+`endif
+
+`ifndef B_SIZE
 `define B_SIZE      4
+`endif
+
 `define RGB_SIZE    (`R_SIZE + `G_SIZE + `B_SIZE)
 
 typedef struct packed {
