@@ -82,20 +82,22 @@ module mandbort_cal_core #(
     reg                         vld_s0;
     reg signed [WIDTH-1:0]      real_s0;
     reg signed [WIDTH-1:0]      img_s0;
-    reg signed [WIDTH-1:0]      real_img_s0;
+    reg signed [WIDTH-1:0]      real_x_img_s0;      // R x I
+    reg [WIDTH-1:0]             real2_p_img2_s0;    // R squre x I squre
 
     // stage 1
-    logic signed [WIDTH-1:0]    real_real_resize_s1;
-    logic signed [WIDTH-1:0]    img_img_resize_s1;
-    logic signed [WIDTH-1:0]    real_img_resize_s1;
+    logic signed [WIDTH-1:0]    real_x_real_resize_s1;
+    logic signed [WIDTH-1:0]    img_x_img_resize_s1;
+    logic signed [WIDTH-1:0]    real_x_img_resize_s1;
+
 
     logic signed [WIDTH-1:0]    nxt_real_s1;
     logic signed [WIDTH-1:0]    nxt_img_s1;
 
     reg                         vld_s1;
-    reg signed [2*WIDTH-1:0]    real_real_s1;   // R x R
-    reg signed [2*WIDTH-1:0]    img_img_s1;     // I x I
-    reg signed [2*WIDTH-1:0]    real_img_s1;    // R x I
+    reg signed [2*WIDTH-1:0]    real_x_real_s1;   // R x R
+    reg signed [2*WIDTH-1:0]    img_x_img_s1;     // I x I
+    reg signed [2*WIDTH-1:0]    real_x_img_s1;    // R x I
 
 
     // --------------------------------
@@ -112,9 +114,11 @@ module mandbort_cal_core #(
 
     // perform the multiplication
     always @(posedge clk) begin
-        real_real_s1 <= real_s0 * real_s0;
-        img_img_s1 <= img_s0 * img_s0;
-        real_img_s1 <= real_s0 * img_s0;
+        if (vld_s0) begin
+            real_x_real_s1 <= real_s0 * real_s0;
+            img_x_img_s1 <= img_s0 * img_s0;
+            real_x_img_s1 <= real_s0 * img_s0;
+        end
     end
 
     // -- stage 1 -- //
@@ -123,12 +127,12 @@ module mandbort_cal_core #(
     // It's better to do saturation overflow
     `define RESIZE(x)           (x[IMGW+WIDTH-1:IMGW])
 
-    assign real_real_resize_s1  = `RESIZE(real_real_s1);
-    assign img_img_resize_s1    = `RESIZE(img_img_s1);
-    assign real_img_resize_s1   = `RESIZE(real_img_s1);
+    assign real_x_real_resize_s1  = `RESIZE(real_x_real_s1);
+    assign img_x_img_resize_s1    = `RESIZE(img_x_img_s1);
+    assign real_x_img_resize_s1   = `RESIZE(real_x_img_s1);
 
-    assign nxt_real_s1 = real_real_resize_s1 - img_img_resize_s1 + Rc;
-    assign nxt_img_s1 = (real_img_resize_s1 << 1) + Ic;
+    assign nxt_real_s1 = real_x_real_resize_s1 - img_x_img_resize_s1 + Rc;
+    assign nxt_img_s1 = (real_x_img_resize_s1 << 1) + Ic;
 
     // this actaully go back to stage 0
     always @(posedge clk) begin
@@ -136,9 +140,19 @@ module mandbort_cal_core #(
         else vld_s0 <= vld_s1 & ~vld | req;
     end
     always @(posedge clk) begin
-        real_s0 <= req ? 0 : nxt_real_s1;
-        img_s0 <= req ? 0 : nxt_img_s1;
-        real_img_s0 <= real_img_resize_s1;
+        if (req) begin
+            real_s0 <= 0;
+            img_s0 <= 0;
+            real2_p_img2_s0 <= 0;
+        end
+        else if (vld_s1) begin
+            real_s0 <= nxt_real_s1;
+            img_s0 <= nxt_img_s1;
+            real2_p_img2_s0 <= real_x_real_resize_s1 + img_x_img_resize_s1;
+        end
+        if (vld_s1) begin
+            real_x_img_s0 <= real_x_img_resize_s1;
+        end
     end
 
     // -- other -- //
@@ -156,8 +170,8 @@ module mandbort_cal_core #(
             if (req) count <= 0;
             else if (vld_s0) count <= count + 1'b1;
 
-            exceed <= real_img_s0 >= THRESHOLD;
-            count_done <= (count == MAX_ITER);
+            exceed <= vld_s1 & (real2_p_img2_s0 >= THRESHOLD[WIDTH-1:0]);
+            count_done <= vld_s1 & (count == MAX_ITER);
         end
     end
 

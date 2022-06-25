@@ -16,7 +16,7 @@
 module mandbort_core #(
     parameter WIDTH     = 16,       // totoal size of the number
     parameter REALW     = 4,        // size of the real part
-    parameter MAX_ITER  = 100,
+    parameter MAX_ITER  = 4095,     // we have 12 bit color so we use 4095 here
     parameter THRESHOLD = 4 << 12,  // use 4 here bcause we don't do the sqrt
     parameter ITERW     = $clog2(MAX_ITER),
     parameter AVN_AW    = 19,
@@ -24,6 +24,8 @@ module mandbort_core #(
 ) (
     input                   clk,
     input                   rst,
+
+    input                   start,
 
     output reg [AVN_AW-1:0] mandbort_avn_address,
     output reg              mandbort_avn_write,
@@ -42,8 +44,8 @@ module mandbort_core #(
 
     logic                   cluster_start;
     logic                   cluster_stall;
-    logic [`H_SIZE-1:0]     cluster_cur_x;
-    logic [`V_SIZE-1:0]     cluster_cur_y;
+    logic [`H_SIZE-1:0]     cluster_cur_x_cnt;
+    logic [`V_SIZE-1:0]     cluster_cur_y_cnt;
     logic [ITERW-1:0]       cluster_iter;
     logic                   cluster_iter_vld;
 
@@ -52,12 +54,15 @@ module mandbort_core #(
     // --------------------------------
 
     always @(posedge clk) begin
-        mandbort_avn_address <= cluster_cur_x + cluster_cur_y * `H_DISPLAY;
+        /* verilator lint_off WIDTH */
+        mandbort_avn_address <= cluster_cur_x_cnt + cluster_cur_y_cnt * `H_DISPLAY;
         mandbort_avn_writedata <= cluster_iter;
-        mandbort_avn_write <= cluster_iter_vld;
+        /* verilator lint_on WIDTH */
+        mandbort_avn_write <= cluster_iter_vld | mandbort_avn_waitrequest & mandbort_avn_write;
     end
 
     assign cluster_stall = mandbort_avn_waitrequest;
+    assign cluster_start = start;
 
     // --------------------------------
     // Module initialization
@@ -82,8 +87,8 @@ module mandbort_core #(
       .y_count      (`V_DISPLAY),
       .start        (cluster_start),
       .stall        (cluster_stall),
-      .cur_x        (cluster_cur_x),
-      .cur_y        (cluster_cur_y),
+      .cur_x_cnt    (cluster_cur_x_cnt),
+      .cur_y_cnt    (cluster_cur_y_cnt),
       .iter         (cluster_iter),
       .iter_vld     (cluster_iter_vld),
       .cal_done     ()

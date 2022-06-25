@@ -32,8 +32,8 @@ module mandbort_cal_cluster #(
 
     input                       start,
     input                       stall,
-    output reg [XCNT_SIZE-1:0]  cur_x,
-    output reg [YCNT_SIZE-1:0]  cur_y,
+    output reg [XCNT_SIZE-1:0]  cur_x_cnt,
+    output reg [YCNT_SIZE-1:0]  cur_y_cnt,
     output reg [ITERW-1:0]      iter,
     output reg                  iter_vld,
     output reg                  cal_done
@@ -51,10 +51,11 @@ module mandbort_cal_cluster #(
     localparam WAIT     = 5;
 
     reg [2:0]           state;
-    reg [XCNT_SIZE-1:0] cur_x_cnt;
-    reg [YCNT_SIZE-1:0] cur_y_cnt;
+
     reg                 cal_core_req;
     reg                 complete;
+    reg [WIDTH-1:0]     cur_x;
+    reg [WIDTH-1:0]     cur_y;
 
     logic [2:0]         state_next;
     logic               cal_core_vld;
@@ -121,11 +122,16 @@ module mandbort_cal_cluster #(
                 if (complete) cal_done <= 1'b1;
                 if (!stall) begin
                     cal_core_req <= ~complete;
+
                     if (x_fire) cur_x <= start_x;
                     else cur_x <= cur_x + delta_x;
+
                     if (x_fire) cur_y <= cur_y + delta_y;
-                    cur_x_cnt <= cur_x_cnt + 1'b1;
-                    cur_y_cnt <= cur_y_cnt + 1'b1;
+
+                    if (x_fire) cur_x_cnt <= 0;
+                    else cur_x_cnt <= cur_x_cnt + 1'b1;
+
+                    if (x_fire) cur_y_cnt <= cur_y_cnt + 1'b1;
                 end
             end
         endcase
