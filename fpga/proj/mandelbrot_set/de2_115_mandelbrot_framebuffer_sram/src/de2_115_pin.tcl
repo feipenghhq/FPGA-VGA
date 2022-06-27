@@ -204,3 +204,21 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SRAM_LB_N
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SRAM_CE_N
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SRAM_OE_N
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to SRAM_WE_N
+
+#============================================================
+# SEG7
+#============================================================
+set_location_assignment PIN_G18 -to HEX0[0]
+set_location_assignment PIN_F22 -to HEX0[1]
+set_location_assignment PIN_E17 -to HEX0[2]
+set_location_assignment PIN_L26 -to HEX0[3]
+set_location_assignment PIN_L25 -to HEX0[4]
+set_location_assignment PIN_J22 -to HEX0[5]
+set_location_assignment PIN_H22 -to HEX0[6]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to HEX0[0]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to HEX0[1]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to HEX0[2]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to HEX0[3]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to HEX0[4]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to HEX0[5]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to HEX0[6]

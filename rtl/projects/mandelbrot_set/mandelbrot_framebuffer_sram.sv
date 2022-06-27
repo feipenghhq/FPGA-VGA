@@ -23,6 +23,13 @@ module mandelbrot_framebuffer_sram #(
     input                   sys_rst,
     input [ITERW-1:0]       max_iteration,
     input                   start,
+    input                   zoom_in,
+    input                   zoom_out,
+    output [3:0]            zoom_level,
+
+    input                   start_ovd,
+    input [31:0]            start_real_ovd,
+    input [31:0]            start_imag_ovd,
 
     // vga interface
     output  [`R_SIZE-1:0]   vga_r,
@@ -80,12 +87,18 @@ module mandelbrot_framebuffer_sram #(
     (
       .clk                        (sys_clk),
       .rst                        (sys_rst),
-      .max_iteration              (max_iteration),
-      .start                      (start),
-      .mandelbrot_avn_address     (mandelbrot_avn_address),
-      .mandelbrot_avn_write       (mandelbrot_avn_write),
-      .mandelbrot_avn_writedata   (mandelbrot_avn_writedata),
-      .mandelbrot_avn_waitrequest (mandelbrot_avn_waitrequest)
+      .max_iteration,
+      .start,
+      .zoom_in,
+      .zoom_out,
+      .zoom_level,
+      .start_ovd,
+      .start_real_ovd,
+      .start_imag_ovd,
+      .mandelbrot_avn_address,
+      .mandelbrot_avn_write,
+      .mandelbrot_avn_writedata,
+      .mandelbrot_avn_waitrequest
     );
 
     vga_controller_sram

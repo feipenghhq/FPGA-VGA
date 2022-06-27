@@ -10,6 +10,8 @@ PROJECT  = mandelbrot
 TOP		 = de2_115_top
 
 include $(GIT_ROOT)/rtl/projects/mandelbrot_set/makefile.mandelbrot_framebuffer_sram.inc
+VERILOG 	+= $(GIT_ROOT)/rtl/common/vga_pulse_gen.sv
+VERILOG 	+= $(GIT_ROOT)/rtl/common/SEG_HEX.sv
 VERILOG  	+= $(PWD)/src/altpllvga.v
 VERILOG  	+= $(PWD)/src/de2_115_top.sv
 SEARCH   	+= $(GIT_ROOT)/rtl/include

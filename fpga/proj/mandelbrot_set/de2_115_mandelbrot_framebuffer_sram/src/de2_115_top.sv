@@ -14,6 +14,8 @@ module de2_115_top (
     input  [3:0]  KEY,         // Pushbutton[3:0]
     // DPDT Switch
     input  [17:0] SW,          // Toggle Switch[17:0]
+    // 7-SEG Display
+    output [6:0]  HEX0,        // Seven Segment Digit 0
     // SRAM Interface
     inout  [15:0] SRAM_DQ,     // SRAM Data bus 16 Bits
     output [19:0] SRAM_ADDR,   // SRAM Address bus 18 Bits
@@ -41,13 +43,26 @@ module de2_115_top (
     logic           sys_clk;
     logic           sys_rst;
 
+    logic           zoom_in;
+    logic           zoom_out;
+
     logic [3:0]     vga_r;
     logic [3:0]     vga_g;
     logic [3:0]     vga_b;
 
+    logic [3:0]     zoom_level;
+    logic [31:0]    start_real_ovd;
+    logic [31:0]    start_imag_ovd;
+
     assign VGA_R = {vga_r, 4'b0};
     assign VGA_G = {vga_g, 4'b0};
     assign VGA_B = {vga_b, 4'b0};
+
+    // here we use 8 (3.5 fixed point) bit value to represent the start_real and start_imag
+    // since the internal data width is 32 bits (4.28 fixed point), we need to convert 3.5 to 4.28 format.
+    // this is done by extending signed bit at the beginning and extending zero at the end.
+    assign start_real_ovd = {SW[7], SW[7:0], 23'b0};
+    assign start_imag_ovd = {SW[15], SW[15:8], 23'b0};
 
     assign VGA_BLANK_N = 1'b1;
     assign VGA_SYNC_N  = 1'b0;
@@ -55,12 +70,10 @@ module de2_115_top (
     assign sys_rst = ~KEY[3];
     assign pixel_rst = ~KEY[3];
 
-    altpllvga u_altpllvga
-    (
-        .inclk0 (CLOCK_50),
-        .c0     (sys_clk),
-        .c1     (VGA_CLK)
-    );
+    vga_pulse_gen zoom_in_pulse  (.clk(sys_clk), .rst(sys_rst), .in(~KEY[1]), .pulse(zoom_in));
+    vga_pulse_gen zoom_out_pulse (.clk(sys_clk), .rst(sys_rst), .in(~KEY[2]), .pulse(zoom_out));
+    SEG_HEX       SEG_HEX        (.iDIG(zoom_level), .oHEX_D(HEX0));
+    altpllvga     u_altpllvga    (.inclk0 (CLOCK_50), .c0(sys_clk), .c1(VGA_CLK));
 
     mandelbrot_framebuffer_sram
     u_mandelbrot_framebuffer_sram (
@@ -75,6 +88,12 @@ module de2_115_top (
         .vga_vsync                          (VGA_VS),
         .max_iteration                      ('d20000),
         .start                              (~KEY[0]),
+        .zoom_in,
+        .zoom_out,
+        .zoom_level,
+        .start_ovd                          (SW[17]),
+        .start_real_ovd,
+        .start_imag_ovd,
         .sram_addr                          (SRAM_ADDR),
         .sram_dq                            (SRAM_DQ),
         .sram_ce_n                          (SRAM_CE_N),

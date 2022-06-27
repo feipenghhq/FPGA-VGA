@@ -53,8 +53,6 @@ module mandelbrot_engine #(
     localparam CAL      = 2;
     localparam CHECK    = 3;
     localparam WAIT     = 4;
-    localparam DONE     = 5;
-
 
     reg [2:0]           state;
 
@@ -96,7 +94,7 @@ module mandelbrot_engine #(
                 if (solver_valid)   state_next = CHECK;
             end
             CHECK: begin
-                if (complete)       state_next = DONE;
+                if (complete)       state_next = IDLE;
                 else if (stall)     state_next = WAIT;
                 else                state_next = START;
             end
